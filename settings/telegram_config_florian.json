@@ -1,0 +1,45 @@
+{
+	"username": "Trading_Signals",
+	"api_id": "21569205",
+	"api_hash": "c3eb528e5b41a39dcf24512df627ee4e",
+	
+	"forward_map": [
+	
+		{	
+			"group_name": "FOREX_SIGNALS",
+			"forward_from": [
+				{ "chat_id": 1436688109, "chat_name": "Easy Pips VIP" },
+				{ "chat_id": 1465493909, "chat_name": "FxPremiere.com VIP" },
+				{ "chat_id": 1758700941, "chat_name": "Forex Signals" }
+			],
+	
+			"forward_to": [
+				{ "chat_id": 1616235936, "chat_name": "GS Forex" }
+			]
+		},
+
+		{	
+			"group_name": "GOLD_SIGNALS",
+			"forward_from": [
+				{ "chat_id": 1146640365, "chat_name": "Gold Forcaster (paid) - Elite" },
+				{ "chat_id": 1710836950, "chat_name": "GOLD Snipers VIP" },
+				{ "chat_id": 1701667638, "chat_name": "Clarity Forex Signals | GBPJPY & GOLD | MambaFX", "is_monitor_edited": true, "monitor_edited_filter_str": "SELL GOLD SIGNAL" }
+			],
+	
+			"forward_to": [
+				{ "chat_id": 1650002523, "chat_name": "GS Gold" }
+			]
+		},	
+		
+		{	
+			"group_name": "CRYPTO_SIGNALS",
+			"forward_from": [
+				{ "chat_id": 1520291354, "chat_name": "Premium" }
+			],
+	
+			"forward_to": [
+				{ "chat_id": 1861897887, "chat_name": "GS Crypto" }
+			]
+		}
+	]
+}

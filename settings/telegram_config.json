@@ -1,0 +1,24 @@
+{
+	"username": "Alex2",
+	"api_id": "10652401",
+	"api_hash": "13cc03d844ec7cf75d20ed0bee7a687b",
+	
+	"forward_map": [
+		{	
+			"group_name": "TEST_SIGNALS",
+			"forward_from": [
+				{ 
+					"chat_id": 1526567406, 
+					"chat_name": "TMMT-1", 
+					"is_monitor_edited": true, 
+					"monitor_edited_filter_str": "SELL GOLD SIGNAL" 
+				}
+					
+			],
+			
+			"forward_to": [
+				{ "chat_id": 1805165556, "chat_name": "TMMT-2" }
+			]	
+		}
+	]
+}
