@@ -54,8 +54,6 @@ from __init__ import LOG_FOLDER, SETTINGS_DIR, TELEGRAM_CFG_FILE
 log = ad.init_log(f'main.log', LOG_FOLDER, "main")
 
 msg_edit_list = []
-msg_edit_check_interval = 20
-msg_edit_max_checks = 3
 
 
 async def new_message_handler(event):
@@ -126,7 +124,7 @@ async def check_message_edit(msg_obj) -> bool:
     pass
 
 
-async def main_loop(tgclient, channels_data):
+async def main_loop(tgclient, channels_data, msg_edit_check_interval, msg_edit_max_checks):
     global msg_edit_list
     msg_edit_trigger_time = 0  # To know if time comes for edited messages check
 
@@ -417,7 +415,7 @@ if __name__ == '__main__':
     # region [ Main Loop (async) ]
 
     try:
-        tgclient.loop.run_until_complete(main_loop(tgclient, channels_data))
+        tgclient.loop.run_until_complete(main_loop(tgclient, channels_data, telegram_cfg["check_interval"], telegram_cfg["max_checks"]))
     except KeyboardInterrupt:
         print(f'\n[main]: stopping . . .')
     finally:
