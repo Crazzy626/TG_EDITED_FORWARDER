@@ -121,8 +121,34 @@ async def channels_peer_update(tgclient, channels_data) -> bool | str:
     return True
 
 
-async def check_message_edit(msg_obj) -> bool:
-    pass
+async def check_message_edit(msg_obj, channel_peer_obj) -> bool | str:
+    """
+       msg_obj = {
+           "msg_id": XXX,
+           "channel_id": YYY
+           "checks_count": 0
+       }
+       :param msg_obj:
+       :return:
+       """
+    # Retrieve message by ID using Channel Peer OBJ
+
+    msg_data = await tgclient.get_messages(channel_peer_obj, limit=1, ids=msg_obj['msg_id'])
+
+    if msg_data is None:
+        return f'[debug]:[edit_monitoring]: Failed to retrieve Message [{msg_obj["msg_id"]}] from history'
+
+    # [Message Edited]
+    # Verify by {edit_date} KEY
+
+    if msg_data.edit_date is not None:  # If message was not edited - it will be None
+        last_edited = msg_data.edit_date
+        print(f'[debug]:[edit_monitoring]: Message [{msg_obj["msg_id"]}] > Edited: [{last_edited}]  |  checks_count = {msg_obj["checks_count"]}')
+        log.debug(f'[debug]:[edit_monitoring]: Message [{msg_obj["msg_id"]}] > Edited: [{last_edited}]  |  checks_count = {msg_obj["checks_count"]}')
+        return True
+    else:
+        msg_obj["checks_count"] += 1
+        return False
 
 
 async def main_loop(tgclient, channels_data, msg_edit_check_interval, msg_edit_max_checks):
@@ -161,28 +187,55 @@ async def main_loop(tgclient, channels_data, msg_edit_check_interval, msg_edit_m
         # See if Message Edit check time occurs
 
         if time.time() - msg_edit_trigger_time > msg_edit_check_interval:
-            print(f'[debug]:[main_loop]: message edit check time . . .')
+            print(f'[debug]:[main_loop]: message edit check time > total messages: {len(msg_edit_list)}')
+            log.debug(f'[main_loop]: message edit check time . . .')
 
             if len(msg_edit_list) > 0:
-                print(f'[main_loop]: Message edit: check trigger > total messages: {len(msg_edit_list)}')
-
                 temp_msg_edit_list = []
 
                 for msg_obj in msg_edit_list:
-                    if await check_message_edit(msg_obj) is True:
-                        # Send to Signal Parser > Message will not be kept in monitoring list
-                        print(
-                            f'[main_loop]: Message edit > edited message [{msg_obj["msg_id"]}] > send to Signal Parser . . .')
+
+                    # Get Channel Peer OBJ for Channel to which this message belongs by Channel ID
+                    msg_check_res = await check_message_edit(msg_obj, channels_data[msg_obj["channel_id"]])
+
+                    # Error
+                    if type(msg_check_res) is str:
+                        print(msg_check_res)
+                        log.debug(msg_check_res)
+
+                    # Message had been edited > forward it
+                    elif msg_check_res is True:
+                        print(f'[debug]:[main_loop]: message edit > forwarding edited message [{msg_obj["msg_id"]}] . . .')
+                        log.debug(f'[main_loop]: message edit > forwarding edited message [{msg_obj["msg_id"]}] > forward . . .')
+
+                        # region [Forward Edited Message]
+
+                        # Add message header
+                        forward_txt = f'@@@{source_map_obj[0]} ({source_map_obj[1]})\n{forward_txt}'
+
+                        try:
+                            # await tgclient.send_message(target_map_obj[0], message=forward_txt)
+                            # Note: {file} param will be None - if no media detected.
+                            # If media - detected - then "MessageMediaPhoto" OBJ will be sent from (message_media = MessageMediaPhoto(photo=Photo(id=5440445674278731901 . . .)
+                            await tgclient.send_message(target_map_obj[0], file=message_media, message=forward_txt)
+                            print(f'[+] Message sent OK\n')
+                        except Exception as ex:
+                            print(f'[!] Exception - while sending message. ErrMsg: {ex}')
+                            log.exception(f'Exception - while sending message. ErrMsg: {ex}')
+
+                        # endregion
+
+                    # Message edit check exceeds checks count > will not be kept in monitoring list
                     elif msg_obj["checks_count"] == msg_edit_max_checks:
-                        # Message checks count exceed number of checks > will not be kept in monitoring list
-                        print(
-                            f'[main_loop]: Message edit > message [{msg_obj["msg_id"]}] exceeds max checks > removing from monitoring')
+                        print(f'[debug]:[main_loop]: message edit > message [{msg_obj["msg_id"]}] exceeds max checks > removing from monitoring')
+                        log.debug(f'[main_loop]: message edit > message [{msg_obj["msg_id"]}] exceeds max checks > removing from monitoring')
+
+                    # Keep message in monitoring list
                     else:
-                        # Keep message in monitoring list
                         temp_msg_edit_list.append(msg_obj)
 
                 msg_edit_list = temp_msg_edit_list
-                print(f'[main_loop]: Message edit: total messages left: {len(msg_edit_list)}')
+
             msg_edit_trigger_time = time.time()
 
         # endregion
