@@ -111,14 +111,15 @@ def create_channels_data(cfg: dict) -> dict | str:
     if "forward_map" not in cfg:
         return 'Failed to read [forward_map] - the key is missing from telegram config file'
 
-    channel_data_obj = {}
+    channel_data = {}
 
     print('\n')
 
     for idx, a_group in enumerate(cfg["forward_map"], start=1):
 
-        print('\n----------------------------------------------------')
+        print('----------------------------------------------------')
         print(f'[{idx}] GROUP: {a_group["group_name"]}\n')
+        log.info(f'[{idx}] GROUP: {a_group["group_name"]}\n')
 
         for idy, ch_from in enumerate(a_group["forward_from"], start=1):
             # Creating "channels_data" entry
@@ -157,13 +158,15 @@ def create_channels_data(cfg: dict) -> dict | str:
                 "tot_msg_with_media": 0
             }
 
-            channel_data_obj[ch_from["chat_id"]] = ch_obj_params
+            channel_data[ch_from["chat_id"]] = ch_obj_params
 
             print(f'    [{idy}] MAP for chat [ {ch_from["chat_name"]} ({ch_from["chat_id"]}) ] OK')
-    #
-    #
-    # print(f'\n[+] Total chats to monitor: {len(chats_set)}')
-    # log.info(f'Total chats to monitor: {len(chats_set)}')
+            log.info(f'    [{idy}] MAP for chat [ {ch_from["chat_name"]} ({ch_from["chat_id"]}) ] OK')
+
+    if len(channel_data) == 0:
+        return 'Warning - no any channels maps created - check settings file'
+
+    return channel_data
 
 
 if __name__ == '__main__':
@@ -176,7 +179,8 @@ if __name__ == '__main__':
     if type(log) is str:  # Error string
         print(log)
         exit(-1)
-    log.info('[main]: log init OK')
+    print('[main]: [SESSION START] - log init OK')
+    log.info('[main]: [SESSION START] - log init OK')
 
     # endregion // LOG
 
@@ -187,6 +191,7 @@ if __name__ == '__main__':
         print(telegram_cfg)
         log.exception(telegram_cfg)
         exit(-1)
+    print('[main]: telegram cfg init OK')
     log.info('[main]: telegram cfg init OK')
 
     # endregion // Telegram CFG
@@ -198,7 +203,9 @@ if __name__ == '__main__':
         print(channels_data)
         log.warning(channels_data)
         exit(-1)
-    log.info('[main]: channels data init OK')
+    print('\n')
+    print(f'[main]: channels data init OK - total chats to monitor {len(channels_data)}')
+    log.info(f'[main]: channels data init OK - total chats to monitor {len(channels_data)}')
 
     # endregion // Forward Map
 
