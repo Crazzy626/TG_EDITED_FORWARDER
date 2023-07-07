@@ -38,6 +38,11 @@ Telegram Messages Forwarder
 
 """
 
+import asyncio
+import logging
+from datetime import datetime
+from telethon import TelegramClient, events
+from termcolor import colored
 import addons as ad
 from __init__ import LOG_FOLDER, SETTINGS_DIR, TELEGRAM_CFG_FILE
 
@@ -46,8 +51,45 @@ from __init__ import LOG_FOLDER, SETTINGS_DIR, TELEGRAM_CFG_FILE
 log = ad.init_log(f'main.log', LOG_FOLDER, "main")
 
 
-def main():
+async def new_message_handler(event):
     pass
+
+
+def create_tgclient(username, api_id, api_hash, chats_list: list) -> TelegramClient | str:
+    """
+    Init Telegram Client
+    Also add new messages event handler with a list of chats id to be monitored {chats_list}
+
+    :param username:
+    :param api_id:
+    :param api_hash:
+    :param chats_list: list of chats id to be monitored
+    :return:
+    """
+
+    tgclient = TelegramClient(username, api_id, api_hash)
+    tgclient.add_event_handler(new_message_handler, events.NewMessage(chats=chats_list, incoming=True))
+
+    try:
+        tgclient.start()
+    except Exception as ex:
+        return f'[main]: Warning - failed to start Telegram Client. ErrMsg: {ex}'
+
+    # print(f'\nTelegram Client authorized: {tgclient.is_user_authorized()}')
+    # print(f'[main]: Telegram Client connected: {tgclient.is_connected()}\n')
+
+    # ToDo - make sure Telegram Client is connected and authorized
+    # ToDo - refactor authorization process (to be more clear + errors handler)
+
+    if not tgclient.is_connected():
+        if tgclient is not None:
+            try:
+                tgclient.disconnect()
+            except:
+                ...
+        return f'[main]: Warning - telegram client not authorized or not connected'
+
+    return tgclient
 
 
 def create_channels_data(cfg: dict) -> dict | str:
@@ -169,44 +211,67 @@ def create_channels_data(cfg: dict) -> dict | str:
     return channel_data
 
 
+def validate_result(re_data, success_str):
+    """
+    Generic function to check if a "result" is of str type
+    If a function executed and returned str type - means it fails and this str representing the ERROR MESSAGE
+    :param re_data: is a result from a function execution
+    :param success_str: message to log in case that no error
+    """
+
+    if type(re_data) is str:  # Error string
+        print(re_data)
+        log.exception(re_data)
+        # ToDo - tier down before exit
+        exit(-1)
+
+    # If type is not str - means it success
+    print(success_str)
+    log.info(success_str)
+
+
+def channels_peer_update(tgclient, channels_data):
+    """
+    Need to get Chanel Peer OBJ for channels where we need to retrieve mesages history
+    This applies to channels that has "is_monitor_edited" KEY
+    FOr such channels we monitor
+    :param tgclient:
+    :param channels_data:
+    :return:
+    """
+    pass
+
+
 if __name__ == '__main__':
 
     # region [ INIT ]
     # Note: some OBJ are init on top
 
     # region [ LOG ]
-
-    if type(log) is str:  # Error string
-        print(log)
-        exit(-1)
-    print('[main]: [SESSION START] - log init OK')
-    log.info('[main]: [SESSION START] - log init OK')
-
+    validate_result(log, '[main]: [SESSION START] - log init OK')
     # endregion // LOG
 
     # region [ Telegram CFG ]
-
     telegram_cfg = ad.json_read_to_obj(f'{SETTINGS_DIR}/{TELEGRAM_CFG_FILE}')
-    if type(telegram_cfg) is str:   # Error string
-        print(telegram_cfg)
-        log.exception(telegram_cfg)
-        exit(-1)
-    print('[main]: telegram cfg init OK')
-    log.info('[main]: telegram cfg init OK')
-
+    validate_result(telegram_cfg, '[main]: telegram cfg init OK')
     # endregion // Telegram CFG
 
     # region [ Channels Data ]
-
     channels_data = create_channels_data(telegram_cfg)
-    if type(channels_data) is str:   # Error string
-        print(channels_data)
-        log.warning(channels_data)
-        exit(-1)
     print('\n')
-    print(f'[main]: channels data init OK - total chats to monitor {len(channels_data)}')
-    log.info(f'[main]: channels data init OK - total chats to monitor {len(channels_data)}')
+    validate_result(channels_data, f'[main]: channels data init OK - total chats to monitor {len(channels_data)}')
+    # endregion // Channels Data
 
-    # endregion // Forward Map
+    # region [ Telegram Client ]
+
+    tgclient = create_tgclient(telegram_cfg["username"], telegram_cfg["api_id"], telegram_cfg["api_hash"], list(channels_data.keys()))
+    validate_result(tgclient, '[main]: telegram client init OK')
+    # endregion // Telegram Client
+
+    # region [ Get Channels Peer OBJ ]
+    # Needed for telethon get_messages function to retrieve history messages
+    channels_peer_update = channels_peer_update(tgclient, channels_data)
+    validate_result(channels_peer_update, '[main]: channels peer obj init OK')
+    # endregion // Get Channels Peer OBJ
 
     # endregion // INIT
