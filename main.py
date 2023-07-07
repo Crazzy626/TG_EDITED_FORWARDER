@@ -40,8 +40,11 @@ Telegram Messages Forwarder
 
 import asyncio
 import logging
+import time
 from datetime import datetime
 from telethon import TelegramClient, events
+from telethon.tl.functions.messages import GetHistoryRequest, GetDialogsRequest
+from telethon.tl.types import InputPeerChannel, InputPeerChat, InputPeerEmpty
 from termcolor import colored
 import addons as ad
 from __init__ import LOG_FOLDER, SETTINGS_DIR, TELEGRAM_CFG_FILE
@@ -50,9 +53,154 @@ from __init__ import LOG_FOLDER, SETTINGS_DIR, TELEGRAM_CFG_FILE
 # [LOG Init]
 log = ad.init_log(f'main.log', LOG_FOLDER, "main")
 
+msg_edit_list = []
+msg_edit_check_interval = 20
+msg_edit_max_checks = 3
+
 
 async def new_message_handler(event):
+    print('[debug]: New Message received')
+
+
+async def channels_peer_update(tgclient, channels_data) -> bool | str:
+    """
+    Need to get Chanel Peer OBJ for channels where we need to retrieve messages history
+    This applies to channels that has "is_monitor_edited" KEY
+
+    Getting Chanel Peer by requesting all channels then selecting needed
+
+    Update data for {channels_peer} dict
+    Main aim is to update {peerOBJ} KEY for the monitored channels
+    Using {GetDialogsRequest} method to retrieve ALL User's dialogs and search for the Target Channel there
+    Returned OBJ will have "peer" OBJ that will be stored in {channels_peer} dict for this Channel
+
+    :param tgclient:
+    :param channels_data: is the main Channels Data list that stores all required data for all channels
+    :return:
+    """
+
+    # Telethon Dialogs Request OBJ
+
+    get_dialogs = GetDialogsRequest(
+        offset_date=None,
+        offset_id=0,
+        offset_peer=InputPeerEmpty(),
+        limit=100,
+        hash=0
+    )
+    try:
+        dialogs_obj = await tgclient(get_dialogs)
+    except Exception as ex:
+        return f'[main]: Exception on "GetDialogsRequest" for channels peer OBJ update. ErrMsg: {ex}'
+
+    if dialogs_obj is None or len(dialogs_obj.dialogs) == 0:
+        return f'[main]: Failed to retrieve channels dialogs for channels peer OBJ update'
+
+    print(f'[debug]:[main]: dialogs retrieved - total [{len(dialogs_obj.dialogs)}]')
+
+    # Filter only needed channels - those which we will want to monitor for edited messages
+
+    for ch_key, ch_data in channels_data.items():
+
+        if not ch_data["is_monitor_edited"]:
+            continue
+
+        print(f'[debug]:[main]: searching Peer OBJ for channel [{ch_key}]')
+
+        # Search channel by its ID and get Peer OBJ
+        is_found = False
+        for dlg_obj in dialogs_obj.dialogs:
+            if dlg_obj.peer.channel_id == ch_key:
+                ch_data["channel_peer_obj"] = dlg_obj.peer
+                print(f'[debug]:[main]: Found Peer OBJ for channel [{ch_key}]')
+                is_found = True
+                break
+
+        if not is_found:
+            return f'[main]: Failed to retrieve Peer OBJ for channel [{ch_key}] - channel with such ID not found in dialogs list returned by "GetDialogsRequest"'
+
+    return True
+
+
+async def check_message_edit(msg_obj) -> bool:
     pass
+
+
+async def main_loop(tgclient, channels_data):
+    global msg_edit_list
+    msg_edit_trigger_time = 0  # To know if time comes for edited messages check
+
+    # region [ Get Channels Peer OBJ ]
+
+    channels_peer_update_proc = await channels_peer_update(tgclient, channels_data)
+    if type(channels_peer_update_proc) is str:
+        print(channels_peer_update_proc)
+        log.warning(channels_peer_update_proc)
+        return
+
+    # endregion // Get Channels Peer OBJ
+
+    # region [ Main Infinite Loop ]
+
+    '''
+    [ ASYNCIO MAGIC :) ]
+    Yielding control back to the event loop here (with `await`) is key.
+    Giving an entire second to it to do anything it needs like handling updates, performing I/O, etc.
+    '''
+
+    while True:
+
+        # region [Messages edit monitor]
+        '''
+        [Logic]
+
+        - We have {msg_edit_q} that contains Message OBJ
+          This messages needs to be monitored if they actually got edited
+
+        - Every message is verified 5 times every 1 minute, per {msg_edit_interval} and {msg_edit_max_checks}
+          Means after 5 minutes message is removed
+
+        - Message is removed if got edited (send to Signal Parser)  
+
+        Message OBJ = {
+            "msg_id": XXX,
+            "channel_id": YYY
+            "checks_count": 0,
+        }
+
+        '''
+
+        # See if Message Edit check time occurs
+
+        if time.time() - msg_edit_trigger_time > msg_edit_check_interval:
+            if len(msg_edit_list) > 0:
+                print(f'[main_loop]: Message edit: check trigger > total messages: {len(msg_edit_list)}')
+
+                temp_msg_edit_list = []
+
+                for msg_obj in msg_edit_list:
+                    if await check_message_edit(msg_obj) is True:
+                        # Send to Signal Parser > Message will not be kept in monitoring list
+                        print(
+                            f'[main_loop]: Message edit > edited message [{msg_obj["msg_id"]}] > send to Signal Parser . . .')
+                    elif msg_obj["checks_count"] == msg_edit_max_checks:
+                        # Message checks count exceed number of checks > will not be kept in monitoring list
+                        print(
+                            f'[main_loop]: Message edit > message [{msg_obj["msg_id"]}] exceeds max checks > removing from monitoring')
+                    else:
+                        # Keep message in monitoring list
+                        temp_msg_edit_list.append(msg_obj)
+
+                msg_edit_list = temp_msg_edit_list
+                print(f'[main_loop]: Message edit: total messages left: {len(msg_edit_list)}')
+            msg_edit_trigger_time = time.time()
+
+        # endregion
+
+        # Per asyncio logic: Reserve some time to Process New TG Messages in handler {new_message_handler}
+        await asyncio.sleep(1)
+
+    # endregion
 
 
 def create_tgclient(username, api_id, api_hash, chats_list: list) -> TelegramClient | str:
@@ -230,18 +378,6 @@ def validate_result(re_data, success_str):
     log.info(success_str)
 
 
-def channels_peer_update(tgclient, channels_data):
-    """
-    Need to get Chanel Peer OBJ for channels where we need to retrieve mesages history
-    This applies to channels that has "is_monitor_edited" KEY
-    FOr such channels we monitor
-    :param tgclient:
-    :param channels_data:
-    :return:
-    """
-    pass
-
-
 if __name__ == '__main__':
 
     # region [ INIT ]
@@ -269,9 +405,34 @@ if __name__ == '__main__':
     # endregion // Telegram Client
 
     # region [ Get Channels Peer OBJ ]
+    # As it is async function if will be called before telegram async loop (in async def main_loop())
     # Needed for telethon get_messages function to retrieve history messages
-    channels_peer_update = channels_peer_update(tgclient, channels_data)
-    validate_result(channels_peer_update, '[main]: channels peer obj init OK')
+    # channels_peer_update = channels_peer_update(tgclient, channels_data)
+    # validate_result(channels_peer_update, '[main]: channels peer obj init OK')
     # endregion // Get Channels Peer OBJ
 
     # endregion // INIT
+
+    # region [ Main Loop (async) ]
+
+    try:
+        tgclient.loop.run_until_complete(main_loop(tgclient, channels_data))
+    except KeyboardInterrupt:
+        print(f'\n[main]: Stopping . . .')
+    finally:
+        if tgclient is not None:
+            try:
+                tgclient.disconnect()
+                print('[main]: telegram client disconnected OK')
+            except:
+                pass
+
+            try:
+                tgclient.loop.close()
+                print('  [+] Client Loop - closed OK')
+            except:
+                pass
+
+    # endregion
+
+    print(f'\n[+] Finished!')
