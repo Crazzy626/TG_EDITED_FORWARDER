@@ -53,6 +53,7 @@ from __init__ import LOG_FOLDER, SETTINGS_DIR, TELEGRAM_CFG_FILE
 # [LOG Init]
 log = ad.init_log(f'main.log', LOG_FOLDER, "main")
 
+# Updated in {new_message_handler} and then msg check occurs in {check_message_edit}
 msg_edit_list = []
 
 
@@ -127,16 +128,6 @@ async def check_message_edit(msg_obj) -> bool:
 async def main_loop(tgclient, channels_data, msg_edit_check_interval, msg_edit_max_checks):
     global msg_edit_list
     msg_edit_trigger_time = 0  # To know if time comes for edited messages check
-
-    # region [ Get Channels Peer OBJ ]
-
-    channels_peer_update_proc = await channels_peer_update(tgclient, channels_data)
-    if type(channels_peer_update_proc) is str:      # Error str
-        print(channels_peer_update_proc)
-        log.warning(channels_peer_update_proc)
-        return
-
-    # endregion // Get Channels Peer OBJ
 
     # region [ Main Infinite Loop ]
 
@@ -404,10 +395,9 @@ if __name__ == '__main__':
     # endregion // Telegram Client
 
     # region [ Get Channels Peer OBJ ]
-    # As it is async function if will be called before telegram async loop (in async def main_loop())
     # Needed for telethon get_messages function to retrieve history messages
-    # channels_peer_update = channels_peer_update(tgclient, channels_data)
-    # validate_result(channels_peer_update, '[main]: channels peer obj init OK')
+    channels_peer_update = tgclient.loop.run_until_complete(channels_peer_update(tgclient, channels_data))
+    validate_result(channels_peer_update, '[main]: channels peer obj init OK')
     # endregion // Get Channels Peer OBJ
 
     # endregion // INIT
@@ -415,7 +405,14 @@ if __name__ == '__main__':
     # region [ Main Loop (async) ]
 
     try:
-        tgclient.loop.run_until_complete(main_loop(tgclient, channels_data, telegram_cfg["check_interval"], telegram_cfg["max_checks"]))
+        tgclient.loop.run_until_complete(
+            main_loop(
+                tgclient,
+                channels_data,
+                telegram_cfg["msg_edit_monitor_check_interval"],
+                telegram_cfg["msg_edit_monitor_max_checks"]
+            )
+        )
     except KeyboardInterrupt:
         print(f'\n[main]: stopping . . .')
     finally:
