@@ -133,7 +133,7 @@ async def main_loop(tgclient, channels_data):
     # region [ Get Channels Peer OBJ ]
 
     channels_peer_update_proc = await channels_peer_update(tgclient, channels_data)
-    if type(channels_peer_update_proc) is str:
+    if type(channels_peer_update_proc) is str:      # Error str
         print(channels_peer_update_proc)
         log.warning(channels_peer_update_proc)
         return
@@ -146,33 +146,34 @@ async def main_loop(tgclient, channels_data):
     [ ASYNCIO MAGIC :) ]
     Yielding control back to the event loop here (with `await`) is key.
     Giving an entire second to it to do anything it needs like handling updates, performing I/O, etc.
+    
+    [Messages Edit Monitor]
+
+    - We have {msg_edit_q} that contains Message OBJ
+      This messages needs to be monitored if they actually got edited
+
+    - Every message is verified, for ex. 5 times every 1 minute, per {msg_edit_interval} and {msg_edit_max_checks}
+      Means after 5 minutes message is removed
+
+    - Message is removed if got edited (send to Signal Parser)  
+
+    msg_obj = {
+        "msg_id": XXX,
+        "channel_id": YYY
+        "checks_count": 0
+    }
+    
     '''
 
     while True:
 
         # region [Messages edit monitor]
-        '''
-        [Logic]
-
-        - We have {msg_edit_q} that contains Message OBJ
-          This messages needs to be monitored if they actually got edited
-
-        - Every message is verified 5 times every 1 minute, per {msg_edit_interval} and {msg_edit_max_checks}
-          Means after 5 minutes message is removed
-
-        - Message is removed if got edited (send to Signal Parser)  
-
-        Message OBJ = {
-            "msg_id": XXX,
-            "channel_id": YYY
-            "checks_count": 0,
-        }
-
-        '''
 
         # See if Message Edit check time occurs
 
         if time.time() - msg_edit_trigger_time > msg_edit_check_interval:
+            print(f'[debug]:[main_loop]: message edit check time . . .')
+
             if len(msg_edit_list) > 0:
                 print(f'[main_loop]: Message edit: check trigger > total messages: {len(msg_edit_list)}')
 
@@ -418,8 +419,9 @@ if __name__ == '__main__':
     try:
         tgclient.loop.run_until_complete(main_loop(tgclient, channels_data))
     except KeyboardInterrupt:
-        print(f'\n[main]: Stopping . . .')
+        print(f'\n[main]: stopping . . .')
     finally:
+
         if tgclient is not None:
             try:
                 tgclient.disconnect()
@@ -429,7 +431,7 @@ if __name__ == '__main__':
 
             try:
                 tgclient.loop.close()
-                print('  [+] Client Loop - closed OK')
+                print('[main]: telegram client Loop - closed OK')
             except:
                 pass
 
