@@ -3,7 +3,7 @@ Telegram Messages Forwarder
 
 [Version 2.0:]
 
-    [07.07.2023] Added possibility to monitor "Edited Messages"
+    [08.07.2023] Added possibility to monitor "Edited Messages"
 
     First, potential Signal message appears in Channel - but it has no full Signal content yet
     We can filter potential Signal message using some logic:
