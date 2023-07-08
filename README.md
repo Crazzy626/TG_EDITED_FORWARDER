@@ -38,6 +38,10 @@
     ![Screenshot](PNG.png)
     <img src="PNG.png" alt="Alt text" title="Optional title">
 
+    ![alt text](https://github.com/Crazzy626/TG_EDITED_FORWARDER/master/PNG.png?raw=true)
+    ![alt text](https://github.com/Crazzy626/TG_EDITED_FORWARDER/PNG.png?raw=true)
+
+     ![alt text](./PNG.png)
 
 # [Version 1.0:]
 
