@@ -111,11 +111,11 @@ async def new_message_handler(event):
     - Add Message to {msg_edit_monitor_list}
     '''
 
-    _ch = channels_data[msg_obj["channel_id"]]
+    channel_obj = channels_data[msg_obj["channel_id"]]
 
-    if _ch["is_monitor_edited"]:                # Message needs to be monitored
+    if channel_obj["is_monitor_edited"]:                # Message needs to be monitored
         # See if passes filter
-        if msg_obj["message_txt"].contains(_ch["monitor_edited_filter_str"]):        # Potential Signal message
+        if channel_obj["monitor_edited_filter_str"] in msg_obj["message_txt"]:        # Potential Signal message
             msg_obj["checks_count"] = 0
             msg_edit_monitor_list.append(msg_obj)
             print(f'Message [{msg_obj["message_id"]}] > added to edit monitor list')
@@ -130,8 +130,104 @@ async def new_message_handler(event):
 
     # region [Message Forward]
 
+    '''
+    Initially {forward_txt} is the same message that we received
+    Then check if this message is a "replied" type
+    If it is replied message then {forward_txt} need to contain this actual message + replied message
+    Replied Message need to be retrieved
+    '''
 
-    # endregion
+    # Actual message - that will be updated with "replied" message if it is the case
+    forward_txt = msg_obj["message_txt"]
+
+    # region [Message ReplyType]
+
+    '''    
+    If this actual message is a Reply to other message > retrieve "Replied Message" {replied_message}
+    Need to get "Chat Entity" - in order to retrieve "replied" message.
+    Note: if need to get Chat Entity by Chat ID > await event.client.get_entity(chat_id)
+    In our case - it is same chat (in this event) so can get chat entity > {await event.get_chat()}
+    '''
+
+    if msg_obj["message_reply_id"] is not None:
+
+        print(f'[+] Message [ReplyType] detected: this message: [{msg_obj["message_id"]}] ---> replied to: [{msg_obj["message_reply_id"]}]')
+        log.info(f'Message [ReplyType] detected: this message: [{msg_obj["message_id"]}] ---> replied to: [{msg_obj["message_reply_id"]}]')
+
+        # [Chat Entity]
+
+        chat_entity = None
+
+        try:
+            chat_entity = await event.get_chat()
+            log.debug(f'Message [ReplyType]: "replied_message" Chat Entity retrieved success:\n{chat_entity}')
+        except Exception as ex:
+            print(f'[!] Exception - while getting "replied_message" Chat Entity. ErrMsg: {ex}')
+            log.exception(f'Exception - while getting "replied_message" Chat Entity. ErrMsg: {ex}')
+
+        # [Replied Message]
+
+        # Retrieve Message OBJ by message by ID > Message(id=193, ... message='a', ...
+        replied_message = None
+
+        if chat_entity is not None:
+            try:
+                replied_message = await tgclient.get_messages(chat_entity, ids=msg_obj["message_id"])
+                log.info(f'Message [ReplyType]: "replied_message" Message OBJ retrieved success:\n{replied_message}')
+            except Exception as ex:
+                print(f'[!] Exception - while getting "replied_message" Message OBJ. ErrMsg: {ex}')
+                log.exception(f'Exception - while getting "replied_message"  Message OBJ. ErrMsg: {ex}')
+
+        # If {replied_message} could not be retrieved - log Warning and only "actual" message will be forwarded
+
+        if replied_message is None:
+            print(
+                f'[!] Warning - "replied_message" Message OBJ could not be retrieved - only "actual" message will be forwarded')
+            log.warning(
+                f'[!] Warning - "replied_message" Message OBJ could not be retrieved - only "actual" message will be forwarded')
+        else:
+            # Log "replied_message" text
+            print(f'--- replied message {50 * "-"}\n'
+                  f'{replied_message.message}\n'
+                  f'{70 * "-"}\n')
+
+            # Create new {forward_txt} to contain replied message + this actual message
+            forward_txt = f'{replied_message.message}\n{20 * "-"}\n{msg_obj["message_txt"]}'
+
+    # endregion // Message ReplyType
+
+    # region [Forward]
+
+    '''
+    Forward "actual" message or "actual" + "replied_message" > according to all above processing
+    
+    List of channels where need to forward - find it on channel_obj by "forward_to" KEY
+        
+    '''
+
+    for target_channel in channel_obj["forward_to_list"]:
+        print(f'[+] Sending Message . . .\n'
+              f'    FROM: {channel_obj["chat_id"]} ({channel_obj["chat_name"]})\n'
+              f'    TO:   {target_channel["chat_id"]} ({target_channel["chat_name"]})\n')
+
+        # Add message header
+        forward_txt = f'@@@{channel_obj["chat_id"]} ({channel_obj["chat_name"]})\n{forward_txt}'
+
+        try:
+            # await tgclient.send_message(target_map_obj[0], message=forward_txt)
+            # Note: {file} param will be None - if no media detected.
+            # If media - detected - then "MessageMediaPhoto" OBJ will be sent from (message_media = MessageMediaPhoto(photo=Photo(id=5440445674278731901 . . .)
+            await tgclient.send_message(target_channel["chat_id"], file=msg_obj["message_media"], message=forward_txt)
+            print(f'[+] Message sent OK\n')
+        except Exception as ex:
+            print(f'[!] Exception - while sending message. ErrMsg: {ex}')
+            log.exception(f'Exception - while sending message. ErrMsg: {ex}')
+
+        await asyncio.sleep(0.5)
+
+    # endregion // Forward
+
+    # endregion // Message Forward
 
 
 async def message_forward(tgclient, msg_obj, target_channel_id):
