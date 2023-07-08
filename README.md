@@ -28,26 +28,29 @@
     SL: 2000.50
     ---------------------------------------
 
-    ![1](https://github.com/Crazzy626/TG_EDITED_FORWARDER/assets/70648978/4a40a1ce-112b-44a1-b7e4-a67faa97dd8b)
-    ![2](https://github.com/Crazzy626/TG_EDITED_FORWARDER/assets/70648978/da5d6c46-146f-4f43-bd0b-9f5aff739082)
-    ![3](https://github.com/Crazzy626/TG_EDITED_FORWARDER/assets/70648978/af28ff47-6ee0-44a9-a687-df67d94c849b)
-
-
    
-    ![Screenshot](https://github.com/Crazzy626/TG_EDITED_FORWARDER/DOC/1.jpg)
-    ![Screenshot](PNG.png)
-    <img src="PNG.png" alt="Alt text" title="Optional title">
-
-    ![alt text](https://github.com/Crazzy626/TG_EDITED_FORWARDER/master/PNG.png?raw=true)
-    ![alt text](https://github.com/Crazzy626/TG_EDITED_FORWARDER/PNG.png?raw=true)
-
-     ![alt text](./PNG.png)
-     ![alt text](PNG.png)
-     ![alt text](/PNG.png)
-
-     ![PNG](https://github.com/Crazzy626/TG_EDITED_FORWARDER/assets/70648978/0f603fda-8b32-4cda-8aef-ed149487426b)
-
 
 # [Version 1.0:]
 
-- Monitor multiple Telegram Channel messages and forward messages to multiple channels 
+- Monitor multiple Telegram Channel messages and forward messages to multiple channels
+
+
+![1](https://github.com/Crazzy626/TG_EDITED_FORWARDER/assets/70648978/4a40a1ce-112b-44a1-b7e4-a67faa97dd8b)
+![2](https://github.com/Crazzy626/TG_EDITED_FORWARDER/assets/70648978/da5d6c46-146f-4f43-bd0b-9f5aff739082)
+![3](https://github.com/Crazzy626/TG_EDITED_FORWARDER/assets/70648978/af28ff47-6ee0-44a9-a687-df67d94c849b)
+
+
+   
+![Screenshot](https://github.com/Crazzy626/TG_EDITED_FORWARDER/DOC/1.jpg)
+![Screenshot](PNG.png)
+<img src="PNG.png" alt="Alt text" title="Optional title">
+
+![alt text](https://github.com/Crazzy626/TG_EDITED_FORWARDER/master/PNG.png?raw=true)
+![alt text](https://github.com/Crazzy626/TG_EDITED_FORWARDER/PNG.png?raw=true)
+
+![alt text](./PNG.png)
+![alt text](PNG.png)
+![alt text](/PNG.png)
+
+![PNG](https://github.com/Crazzy626/TG_EDITED_FORWARDER/assets/70648978/0f603fda-8b32-4cda-8aef-ed149487426b)
+
