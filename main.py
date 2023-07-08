@@ -97,7 +97,7 @@ async def new_message_handler(event):
     '''
 
     is_edit_monitored = False
-    edit_monitor_str = ''
+    edit_monitor_str = 'False'
 
     channel_obj = channels_data[msg_obj["channel_id"]]
 
@@ -107,12 +107,15 @@ async def new_message_handler(event):
             msg_obj["checks_count"] = 0
             msg_edit_monitor_list.append(msg_obj)
             log.info(f'Message [{msg_obj["message_id"]}] > is from "edit monitored" channel > added to edit monitor list')
-            edit_monitor_str = f'{62 * "-"}\nEdit monitored'
+            edit_monitor_str = 'True > passed filter'
             is_edit_monitored = True
         else:
             log.info(f'Message [{msg_obj["message_id"]}] > is from "edit monitored" channel, but not passed the string filter')
+            edit_monitor_str = 'True > not passed filter'
     else:
         log.info(f'Message [{msg_obj["message_id"]}] > not from "edit monitored" channel')
+
+    edit_monitor_str = f'--- {colored("edit monitor", "green")}{45 * "-"}\n{edit_monitor_str}'
 
     # endregion
 
