@@ -196,7 +196,7 @@ async def new_message_handler(event):
 
     # endregion // Message ReplyType
 
-    # region [Forward]
+    # region [Message Send]
 
     '''
     Forward "actual" message or "actual" + "replied_message" > according to all above processing
@@ -205,10 +205,26 @@ async def new_message_handler(event):
         
     '''
 
+    await send_message(forward_txt, channel_obj, msg_obj)
+
+    # endregion // Message Send
+
+    # endregion // Message Forward
+
+
+async def send_message(forward_txt, channel_obj, msg_obj):
+    """
+    Send message to all target channels
+    :param forward_txt: text to be sent
+    :param channel_obj: Channel OBJ
+    :param msg_obj: Message OBJ
+    :return:
+    """
+
     for target_channel in channel_obj["forward_to_list"]:
-        print(f'[+] Sending Message . . .\n'
-              f'    FROM: {channel_obj["chat_id"]} ({channel_obj["chat_name"]})\n'
-              f'    TO:   {target_channel["chat_id"]} ({target_channel["chat_name"]})\n')
+        print(f'[+] Sending Message [{msg_obj["message_id"]}] '
+              f'FROM: {channel_obj["chat_id"]} ({channel_obj["chat_name"]}) '
+              f'TO:   {target_channel["chat_id"]} ({target_channel["chat_name"]})\n')
 
         # Add message header
         forward_txt = f'@@@{channel_obj["chat_id"]} ({channel_obj["chat_name"]})\n{forward_txt}'
@@ -220,18 +236,10 @@ async def new_message_handler(event):
             await tgclient.send_message(target_channel["chat_id"], file=msg_obj["message_media"], message=forward_txt)
             print(f'[+] Message sent OK\n')
         except Exception as ex:
-            print(f'[!] Exception - while sending message. ErrMsg: {ex}')
-            log.exception(f'Exception - while sending message. ErrMsg: {ex}')
+            print(f'[!] Exception - while sending message [{msg_obj["message_id"]}]. ErrMsg: {ex}')
+            log.exception(f'Exception - while sending message [{msg_obj["message_id"]}]. ErrMsg: {ex}')
 
         await asyncio.sleep(0.5)
-
-    # endregion // Forward
-
-    # endregion // Message Forward
-
-
-async def message_forward(tgclient, msg_obj, target_channel_id):
-    pass
 
 
 async def channels_peer_update(tgclient, channels_data) -> bool | str:
