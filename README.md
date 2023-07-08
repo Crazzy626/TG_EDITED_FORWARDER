@@ -33,6 +33,11 @@
     ![3](https://github.com/Crazzy626/TG_EDITED_FORWARDER/assets/70648978/af28ff47-6ee0-44a9-a687-df67d94c849b)
 
 
+   
+    ![Screenshot](https://github.com/Crazzy626/TG_EDITED_FORWARDER/DOC/1.jpg)
+    ![Screenshot](/DOC/1.jpg)
+    <img src="/DOC/1.jpg" alt="Alt text" title="Optional title">
+
 
 # [Version 1.0:]
 
