@@ -35,8 +35,8 @@
 
    
     ![Screenshot](https://github.com/Crazzy626/TG_EDITED_FORWARDER/DOC/1.jpg)
-    ![Screenshot](A1.jpg)
-    <img src="/DOC/1.jpg" alt="Alt text" title="Optional title">
+    ![Screenshot](PNG.png)
+    <img src="PNG.png" alt="Alt text" title="Optional title">
 
 
 # [Version 1.0:]
