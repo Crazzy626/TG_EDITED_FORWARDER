@@ -173,6 +173,13 @@ async def channels_peer_update(tgclient, channels_data) -> bool | str:
             if dlg_obj.peer.channel_id == ch_key:
                 ch_data["channel_peer_obj"] = dlg_obj.peer
                 print(f'[debug]:[main]: Found Peer OBJ for channel [{ch_key}]')
+
+                # DEBUG
+                # print(dlg_obj)
+                # print(dlg_obj.peer)
+                # msg_data = await tgclient.get_messages(dlg_obj.peer, limit=1, ids=300)
+                # print(msg_data)
+
                 is_found = True
                 break
 
@@ -192,7 +199,8 @@ async def check_message_edit(tgclient, msg_obj, channel_peer_obj) -> bool | str:
 
     msg_obj = {
         "msg_id": XXX,
-        "channel_id": YYY
+        "channel_id": YYY,
+        "message_txt": "ZZZ",
         "checks_count": 0,
         ....
     }
@@ -209,15 +217,18 @@ async def check_message_edit(tgclient, msg_obj, channel_peer_obj) -> bool | str:
 
     # [Message Edited]
     # Verify by {edit_date} KEY
+    # If message was not edited - it will be None
 
-    if msg_data.edit_date is not None:  # If message was not edited - it will be None
+    if msg_data.edit_date is not None:          # Message Edited
         last_edited = msg_data.edit_date
-        print(f'[debug]:[edit_monitoring]: Message [{msg_obj["msg_id"]}] > Edited: [{last_edited}]  |  checks_count = {msg_obj["checks_count"]}')
-        log.debug(f'[debug]:[edit_monitoring]: Message [{msg_obj["msg_id"]}] > Edited: [{last_edited}]  |  checks_count = {msg_obj["checks_count"]}')
-        msg_obj["msg_text"] = msg_data.message
+        print(f'[debug]:[edit_monitoring]: Message [{msg_obj["message_id"]}] > Edit time: [{last_edited}]  |  checks_count = {msg_obj["checks_count"]}')
+        log.debug(f'[debug]:[edit_monitoring]: Message [{msg_obj["message_id"]}] > Edit time: [{last_edited}]  |  checks_count = {msg_obj["checks_count"]}')
+        # Set Message OBJ with new edited message
+        msg_obj["message_txt"] = msg_data.message
         return True
     else:
         msg_obj["checks_count"] += 1
+        print(f'[debug]:[edit_monitoring]: Message [{msg_obj["message_id"]}] not edited  |  checks_count = {msg_obj["checks_count"]}')
         return False
 
 
@@ -266,7 +277,7 @@ async def main_loop(tgclient, channels_data, msg_edit_check_interval, msg_edit_m
                 for msg_obj in msg_edit_monitor_list:
 
                     # Get Channel Peer OBJ for Channel to which this message belongs by Channel ID
-                    msg_check_res = await check_message_edit(tgclient, msg_obj, channels_data[msg_obj["channel_id"]])
+                    msg_check_res = await check_message_edit(tgclient, msg_obj, channels_data[msg_obj["channel_id"]]["channel_peer_obj"])
 
                     # Error
                     if type(msg_check_res) is str:
@@ -275,8 +286,21 @@ async def main_loop(tgclient, channels_data, msg_edit_check_interval, msg_edit_m
 
                     # Message had been edited > forward it
                     elif msg_check_res is True:
-                        print(f'[debug]:[main_loop]: message edit > forwarding edited message [{msg_obj["msg_id"]}] . . .')
-                        log.debug(f'[main_loop]: message edit > forwarding edited message [{msg_obj["msg_id"]}] > forward . . .')
+                        print(f'[debug]:[main_loop]: message edit > forwarding edited message [{msg_obj["message_id"]}] . . .')
+                        log.debug(f'[main_loop]: message edit > forwarding edited message [{msg_obj["message_id"]}] > forward . . .')
+
+                        # Logging
+
+                        tmp_str = f'\n[{ad.get_str_timeprint()}]: {colored("EDITED MESSAGE EVENT:", "light_green")}\n\n' \
+                                  f'=== {colored("data", "light_yellow")} {53 * "="}\n' \
+                                  f'    message_id:          {msg_obj["message_id"]}\n' \
+                                  f'    channel_id:          {msg_obj["channel_id"]}\n' \
+                                  f'--- {colored("message", "light_blue")} {50 * "-"}\n' \
+                                  f'{msg_obj["message_txt"]}\n' \
+                                  f'{62 * "="}\n'
+
+                        print(f'\n{tmp_str}')
+                        log.info(f'Edited Message:\n{msg_obj}')
 
                         # region [Forward Edited Message]
 
@@ -297,8 +321,8 @@ async def main_loop(tgclient, channels_data, msg_edit_check_interval, msg_edit_m
 
                     # Message edit check exceeds checks count > will not be kept in monitoring list
                     elif msg_obj["checks_count"] == msg_edit_max_checks:
-                        print(f'[debug]:[main_loop]: message edit > message [{msg_obj["msg_id"]}] exceeds max checks > removing from monitoring')
-                        log.debug(f'[main_loop]: message edit > message [{msg_obj["msg_id"]}] exceeds max checks > removing from monitoring')
+                        print(f'[debug]:[main_loop]: message edit > message [{msg_obj["message_id"]}] exceeds max checks > removing from monitoring')
+                        log.debug(f'[main_loop]: message edit > message [{msg_obj["message_id"]}] exceeds max checks > removing from monitoring')
 
                     # Keep message in monitoring list
                     else:
