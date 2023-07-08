@@ -54,11 +54,72 @@ from __init__ import LOG_FOLDER, SETTINGS_DIR, TELEGRAM_CFG_FILE
 log = ad.init_log(f'main.log', LOG_FOLDER, "main")
 
 # Updated in {new_message_handler} and then msg check occurs in {check_message_edit}
-msg_edit_list = []
+msg_edit_monitor_list = []
+
+# Main OBJ to keep all Channels Data. Updated by {create_channels_data}
+channels_data = {}
 
 
 async def new_message_handler(event):
-    print('[debug]: New Message received')
+
+    # region [New Message > Create Message OBJ]
+    msg_obj = {}
+
+    try:
+        # msg_obj["message_obj"] = event.message
+        msg_obj["channel_id"] = event.message.peer_id.channel_id
+        msg_obj["message_txt"] = event.message.message
+        msg_obj["message_id"] = event.message.id
+        # Media Type: Will be OBJ: MessageMediaPhoto(photo=Photo(id=5440445674278731901 . . .age_obj.id
+        msg_obj["message_media"] = None
+        is_media_type = False
+        if event.message.media is not None:
+            msg_obj["message_media"] = event.message.media
+            is_media_type = True
+        msg_obj["message_reply_id"] = None
+        if event.message.reply_to is not None:
+            msg_obj["message_reply_id"] = event.message.reply_to.reply_to_msg_id
+    except Exception as ex:
+        print(f'[!] Exception - while decoding Message Event. ErrMsg: {ex}')
+        log.exception(f'Exception - while decoding Message Event. ErrMsg: {ex}')
+        return
+
+    # [Logging]
+
+    tmp_str = f'\n[{ad.get_str_timeprint()}]: {colored("NEW MESSAGE EVENT:", "light_green")}\n\n' \
+              f'=== {colored("data", "light_yellow")} {53 * "="}\n' \
+              f'    message_id:          {msg_obj["message_id"]}\n' \
+              f'    channel_id:          {msg_obj["channel_id"]}\n' \
+              f'    message_reply_id:    {msg_obj["message_reply_id"]}\n' \
+              f'    message_media:       {is_media_type}\n' \
+              f'--- {colored("message", "light_blue")} {50 * "-"}\n' \
+              f'{msg_obj["message_txt"]}\n' \
+              f'{62 * "="}\n'
+
+    print(f'\n{tmp_str}')
+    log.info(f'New Message:\n{msg_obj}')
+
+    # endregion
+
+    # region [Edited Messages]
+    '''
+    - Verify "is_monitor_edited" KEY in {channels_data} to see if this message needs to be monitored
+    - Using Channel ID to get the channel data from  {channels_data}
+    - Add KEY: "checks_count" 
+    - Add Message to {msg_edit_monitor_list}
+    '''
+    _ch = channels_data[msg_obj["channel_id"]]
+    if _ch["is_monitor_edited"]:
+        msg_obj["checks_count"] = 0
+        msg_edit_monitor_list.append(msg_obj)
+        print(f'Message [{msg_obj["message_id"]}] > added to edit monitor list')
+        log.info(f'Message [{msg_obj["message_id"]}] > added to edit monitor list')
+
+    # endregion
+
+
+async def message_forward(tgclient, msg_obj, target_channel_id):
+    pass
 
 
 async def channels_peer_update(tgclient, channels_data) -> bool | str:
@@ -121,19 +182,27 @@ async def channels_peer_update(tgclient, channels_data) -> bool | str:
     return True
 
 
-async def check_message_edit(msg_obj, channel_peer_obj) -> bool | str:
+async def check_message_edit(tgclient, msg_obj, channel_peer_obj) -> bool | str:
     """
-       msg_obj = {
-           "msg_id": XXX,
-           "channel_id": YYY
-           "checks_count": 0
-       }
+    - Check if message had been edited
+    - If Edited - get new text
+      Store message text in same {msg_obj}
+
+    {msg_obj} is created in {new_message_handler} - see there all KEYS
+
+    msg_obj = {
+        "msg_id": XXX,
+        "channel_id": YYY
+        "checks_count": 0,
+        ....
+    }
        :param msg_obj:
        :return:
-       """
+    """
+
     # Retrieve message by ID using Channel Peer OBJ
 
-    msg_data = await tgclient.get_messages(channel_peer_obj, limit=1, ids=msg_obj['msg_id'])
+    msg_data = await tgclient.get_messages(channel_peer_obj, limit=1, ids=msg_obj['message_id'])
 
     if msg_data is None:
         return f'[debug]:[edit_monitoring]: Failed to retrieve Message [{msg_obj["msg_id"]}] from history'
@@ -145,6 +214,7 @@ async def check_message_edit(msg_obj, channel_peer_obj) -> bool | str:
         last_edited = msg_data.edit_date
         print(f'[debug]:[edit_monitoring]: Message [{msg_obj["msg_id"]}] > Edited: [{last_edited}]  |  checks_count = {msg_obj["checks_count"]}')
         log.debug(f'[debug]:[edit_monitoring]: Message [{msg_obj["msg_id"]}] > Edited: [{last_edited}]  |  checks_count = {msg_obj["checks_count"]}')
+        msg_obj["msg_text"] = msg_data.message
         return True
     else:
         msg_obj["checks_count"] += 1
@@ -152,7 +222,7 @@ async def check_message_edit(msg_obj, channel_peer_obj) -> bool | str:
 
 
 async def main_loop(tgclient, channels_data, msg_edit_check_interval, msg_edit_max_checks):
-    global msg_edit_list
+    global msg_edit_monitor_list
     msg_edit_trigger_time = 0  # To know if time comes for edited messages check
 
     # region [ Main Infinite Loop ]
@@ -187,16 +257,16 @@ async def main_loop(tgclient, channels_data, msg_edit_check_interval, msg_edit_m
         # See if Message Edit check time occurs
 
         if time.time() - msg_edit_trigger_time > msg_edit_check_interval:
-            print(f'[debug]:[main_loop]: message edit check time > total messages: {len(msg_edit_list)}')
+            print(f'[debug]:[main_loop]: message edit check time > total messages: {len(msg_edit_monitor_list)}')
             log.debug(f'[main_loop]: message edit check time . . .')
 
-            if len(msg_edit_list) > 0:
+            if len(msg_edit_monitor_list) > 0:
                 temp_msg_edit_list = []
 
-                for msg_obj in msg_edit_list:
+                for msg_obj in msg_edit_monitor_list:
 
                     # Get Channel Peer OBJ for Channel to which this message belongs by Channel ID
-                    msg_check_res = await check_message_edit(msg_obj, channels_data[msg_obj["channel_id"]])
+                    msg_check_res = await check_message_edit(tgclient, msg_obj, channels_data[msg_obj["channel_id"]])
 
                     # Error
                     if type(msg_check_res) is str:
@@ -210,18 +280,18 @@ async def main_loop(tgclient, channels_data, msg_edit_check_interval, msg_edit_m
 
                         # region [Forward Edited Message]
 
-                        # Add message header
-                        forward_txt = f'@@@{source_map_obj[0]} ({source_map_obj[1]})\n{forward_txt}'
-
-                        try:
-                            # await tgclient.send_message(target_map_obj[0], message=forward_txt)
-                            # Note: {file} param will be None - if no media detected.
-                            # If media - detected - then "MessageMediaPhoto" OBJ will be sent from (message_media = MessageMediaPhoto(photo=Photo(id=5440445674278731901 . . .)
-                            await tgclient.send_message(target_map_obj[0], file=message_media, message=forward_txt)
-                            print(f'[+] Message sent OK\n')
-                        except Exception as ex:
-                            print(f'[!] Exception - while sending message. ErrMsg: {ex}')
-                            log.exception(f'Exception - while sending message. ErrMsg: {ex}')
+                        # # Add message header
+                        # forward_txt = f'@@@{source_map_obj[0]} ({source_map_obj[1]})\n{forward_txt}'
+                        #
+                        # try:
+                        #     # await tgclient.send_message(target_map_obj[0], message=forward_txt)
+                        #     # Note: {file} param will be None - if no media detected.
+                        #     # If media - detected - then "MessageMediaPhoto" OBJ will be sent from (message_media = MessageMediaPhoto(photo=Photo(id=5440445674278731901 . . .)
+                        #     await tgclient.send_message(target_map_obj[0], file=message_media, message=forward_txt)
+                        #     print(f'[+] Message sent OK\n')
+                        # except Exception as ex:
+                        #     print(f'[!] Exception - while sending message. ErrMsg: {ex}')
+                        #     log.exception(f'Exception - while sending message. ErrMsg: {ex}')
 
                         # endregion
 
@@ -234,7 +304,7 @@ async def main_loop(tgclient, channels_data, msg_edit_check_interval, msg_edit_m
                     else:
                         temp_msg_edit_list.append(msg_obj)
 
-                msg_edit_list = temp_msg_edit_list
+                msg_edit_monitor_list = temp_msg_edit_list
 
             msg_edit_trigger_time = time.time()
 

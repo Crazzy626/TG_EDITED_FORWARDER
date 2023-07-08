@@ -89,7 +89,7 @@ channels_peer = {}
 
 # Queue to hold messages to monitor for edit
 msg_edit_q = Queue()
-msg_edit_list = []
+msg_edit_monitor_list = []
 msg_edit_check_interval = 20
 msg_edit_max_checks = 3
 
@@ -194,7 +194,7 @@ async def new_message_handler(event):
 
     if message_txt.startswith("GOLD"):
         print(f'[edit_monitoring]: Message [{message_id}] = potential Signal, added to edit monitor queue')
-        msg_edit_list.append({
+        msg_edit_monitor_list.append({
             "msg_id": message_id,
             "checks_count": 0,
             "channel_id": channel_id
@@ -288,7 +288,7 @@ async def new_message_handler(event):
 
 
 async def main_loop():
-    global msg_edit_list
+    global msg_edit_monitor_list
     msg_edit_trigger_time = 0  # To know if time comes for edited messages check
 
     # region [Channels Per OBJ]
