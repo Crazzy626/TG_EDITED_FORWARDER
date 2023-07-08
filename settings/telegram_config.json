@@ -11,14 +11,16 @@
 					"chat_id": 1526567406, 
 					"chat_name": "TMMT-1", 
 					"is_monitor_edited": true, 
-					"monitor_edited_filter_str": "SELL GOLD SIGNAL" 
+					"monitor_edited_filter_str": "GOLD SIGNAL" 
 				}
-					
 			],
 			
 			"forward_to": [
 				{ "chat_id": 1805165556, "chat_name": "TMMT-2" }
 			]	
 		}
-	]
+	],
+	
+	"msg_edit_monitor_check_interval": 10,
+	"msg_edit_monitor_max_checks": 3
 }
