@@ -42,6 +42,8 @@
     ![alt text](https://github.com/Crazzy626/TG_EDITED_FORWARDER/PNG.png?raw=true)
 
      ![alt text](./PNG.png)
+     ![alt text](PNG.png)
+     ![alt text](/PNG.png)
 
      ![PNG](https://github.com/Crazzy626/TG_EDITED_FORWARDER/assets/70648978/0f603fda-8b32-4cda-8aef-ed149487426b)
 
