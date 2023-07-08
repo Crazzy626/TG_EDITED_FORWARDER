@@ -57,7 +57,7 @@ log = ad.init_log(f'main.log', LOG_FOLDER, "main")
 msg_edit_monitor_list = []
 
 # Main OBJ to keep all Channels Data. Updated by {create_channels_data}
-channels_data = {}
+channels_data: dict = {}
 
 
 async def new_message_handler(event):
@@ -104,16 +104,32 @@ async def new_message_handler(event):
     # region [Edited Messages]
     '''
     - Verify "is_monitor_edited" KEY in {channels_data} to see if this message needs to be monitored
+    - See if message isa Potential Signal > add message to monitor list if it passes the filter by match string 
+        {monitor_edited_filter_str} for this Channel
     - Using Channel ID to get the channel data from  {channels_data}
     - Add KEY: "checks_count" 
     - Add Message to {msg_edit_monitor_list}
     '''
+
     _ch = channels_data[msg_obj["channel_id"]]
-    if _ch["is_monitor_edited"]:
-        msg_obj["checks_count"] = 0
-        msg_edit_monitor_list.append(msg_obj)
-        print(f'Message [{msg_obj["message_id"]}] > added to edit monitor list')
-        log.info(f'Message [{msg_obj["message_id"]}] > added to edit monitor list')
+
+    if _ch["is_monitor_edited"]:                # Message needs to be monitored
+        # See if passes filter
+        if msg_obj["message_txt"].contains(_ch["monitor_edited_filter_str"]):        # Potential Signal message
+            msg_obj["checks_count"] = 0
+            msg_edit_monitor_list.append(msg_obj)
+            print(f'Message [{msg_obj["message_id"]}] > added to edit monitor list')
+            log.info(f'Message [{msg_obj["message_id"]}] > added to edit monitor list')
+            # Return here as Message is Edit Monitored
+            return
+
+    # endregion
+
+    # If message is not Edit Monitored or Is Edit Monitored but not passed the Filter
+    # then FORWARD message as normal
+
+    # region [Message Forward]
+
 
     # endregion
 
