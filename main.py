@@ -84,6 +84,38 @@ async def new_message_handler(event):
         log.exception(f'Exception - while decoding Message Event. ErrMsg: {ex}')
         return
 
+    # endregion
+
+    # region [Edited Messages Monitor]
+    '''
+    - Verify "is_monitor_edited" KEY in {channels_data} to see if this message needs to be monitored
+    - See if message isa Potential Signal > add message to monitor list if it passes the filter by match string 
+        {monitor_edited_filter_str} for this Channel
+    - Using Channel ID to get the channel data from  {channels_data}
+    - Add KEY: "checks_count" 
+    - Add Message to {msg_edit_monitor_list}
+    '''
+
+    is_edit_monitored = False
+    edit_monitor_str = ''
+
+    channel_obj = channels_data[msg_obj["channel_id"]]
+
+    if channel_obj["is_monitor_edited"]:                # Message needs to be monitored
+        # See if passes filter
+        if channel_obj["monitor_edited_filter_str"] in msg_obj["message_txt"]:        # Potential Signal message
+            msg_obj["checks_count"] = 0
+            msg_edit_monitor_list.append(msg_obj)
+            log.info(f'Message [{msg_obj["message_id"]}] > is from "edit monitored" channel > added to edit monitor list')
+            edit_monitor_str = f'{62 * "-"}\nEdit monitored'
+            is_edit_monitored = True
+        else:
+            log.info(f'Message [{msg_obj["message_id"]}] > is from "edit monitored" channel, but not passed the string filter')
+    else:
+        log.info(f'Message [{msg_obj["message_id"]}] > not from "edit monitored" channel')
+
+    # endregion
+
     # [Logging]
 
     tmp_str = f'\n[{ad.get_str_timeprint()}]: {colored("NEW MESSAGE EVENT:", "light_green")}\n\n' \
@@ -94,39 +126,17 @@ async def new_message_handler(event):
               f'    message_media:       {is_media_type}\n' \
               f'--- {colored("message", "light_blue")} {50 * "-"}\n' \
               f'{msg_obj["message_txt"]}\n' \
+              f'{edit_monitor_str}\n' \
               f'{62 * "="}\n'
 
     print(f'\n{tmp_str}')
     log.info(f'New Message:\n{msg_obj}')
 
-    # endregion
+    # If message is Edit Monitored - return here (will be forwarded later after edit check procedure)
+    # If message is not Edit Monitored or Is Edit Monitored but not passed the Filter - just forward it as normal
 
-    # region [Edited Messages]
-    '''
-    - Verify "is_monitor_edited" KEY in {channels_data} to see if this message needs to be monitored
-    - See if message isa Potential Signal > add message to monitor list if it passes the filter by match string 
-        {monitor_edited_filter_str} for this Channel
-    - Using Channel ID to get the channel data from  {channels_data}
-    - Add KEY: "checks_count" 
-    - Add Message to {msg_edit_monitor_list}
-    '''
-
-    channel_obj = channels_data[msg_obj["channel_id"]]
-
-    if channel_obj["is_monitor_edited"]:                # Message needs to be monitored
-        # See if passes filter
-        if channel_obj["monitor_edited_filter_str"] in msg_obj["message_txt"]:        # Potential Signal message
-            msg_obj["checks_count"] = 0
-            msg_edit_monitor_list.append(msg_obj)
-            print(f'Message [{msg_obj["message_id"]}] > added to edit monitor list')
-            log.info(f'Message [{msg_obj["message_id"]}] > added to edit monitor list')
-            # Return here as Message is Edit Monitored
-            return
-
-    # endregion
-
-    # If message is not Edit Monitored or Is Edit Monitored but not passed the Filter
-    # then FORWARD message as normal
+    if is_edit_monitored:
+        return
 
     # region [Message Forward]
 
@@ -172,7 +182,7 @@ async def new_message_handler(event):
 
         if chat_entity is not None:
             try:
-                replied_message = await tgclient.get_messages(chat_entity, ids=msg_obj["message_id"])
+                replied_message = await tgclient.get_messages(chat_entity, ids=msg_obj["message_reply_id"])
                 log.info(f'Message [ReplyType]: "replied_message" Message OBJ retrieved success:\n{replied_message}')
             except Exception as ex:
                 print(f'[!] Exception - while getting "replied_message" Message OBJ. ErrMsg: {ex}')
@@ -407,7 +417,7 @@ async def main_loop(tgclient, channels_data, msg_edit_check_interval, msg_edit_m
                     # Message had been edited > forward it
                     elif msg_check_res is True:
                         print(f'[debug]:[main_loop]: message edit > forwarding edited message [{msg_obj["message_id"]}] . . .')
-                        log.debug(f'[main_loop]: message edit > forwarding edited message [{msg_obj["message_id"]}] > forward . . .')
+                        log.debug(f'[main_loop]: message edit > forwarding edited message [{msg_obj["message_id"]}] . . .')
 
                         # Logging
 
@@ -424,18 +434,7 @@ async def main_loop(tgclient, channels_data, msg_edit_check_interval, msg_edit_m
 
                         # region [Forward Edited Message]
 
-                        # # Add message header
-                        # forward_txt = f'@@@{source_map_obj[0]} ({source_map_obj[1]})\n{forward_txt}'
-                        #
-                        # try:
-                        #     # await tgclient.send_message(target_map_obj[0], message=forward_txt)
-                        #     # Note: {file} param will be None - if no media detected.
-                        #     # If media - detected - then "MessageMediaPhoto" OBJ will be sent from (message_media = MessageMediaPhoto(photo=Photo(id=5440445674278731901 . . .)
-                        #     await tgclient.send_message(target_map_obj[0], file=message_media, message=forward_txt)
-                        #     print(f'[+] Message sent OK\n')
-                        # except Exception as ex:
-                        #     print(f'[!] Exception - while sending message. ErrMsg: {ex}')
-                        #     log.exception(f'Exception - while sending message. ErrMsg: {ex}')
+                        await send_message(msg_obj["message_txt"], channels_data[msg_obj["channel_id"]], msg_obj)
 
                         # endregion
 
