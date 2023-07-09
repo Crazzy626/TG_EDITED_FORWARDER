@@ -15,7 +15,16 @@ Monitor Telegram Channel messages and forward them to other channel in real-time
 # [DOC]
 
 ## [Settings]:
-	Configure settings /settings/telegram_config.json
+	- CLone repo using Personal Acess Token
+	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
+	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
+
+	Full command:
+
+	git clone https://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@github.com/Crazzy626/TG_EDITED_FORWARDER.git
+	git clone https://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@github.com/Crazzy626/TG_EDITED_FORWARDER.git
+
+	- Configure settings /settings/telegram_config.json
 
 **Telegram settings:** 
 	get from your Telegram account (see telegram api docs) 
