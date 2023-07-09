@@ -2,6 +2,9 @@
 
 # [DOC]
 
+1. Configure settings on settings/telegram_config.json
+2. log.txt will be created under /logs
+
 ![1](https://github.com/Crazzy626/TG_EDITED_FORWARDER/assets/70648978/4a40a1ce-112b-44a1-b7e4-a67faa97dd8b)
 ![2](https://github.com/Crazzy626/TG_EDITED_FORWARDER/assets/70648978/da5d6c46-146f-4f43-bd0b-9f5aff739082)
 ![3](https://github.com/Crazzy626/TG_EDITED_FORWARDER/assets/70648978/af28ff47-6ee0-44a9-a687-df67d94c849b)
