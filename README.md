@@ -48,11 +48,11 @@ Monitor Telegram Channel messages and forward them to other channel in real-time
 
      	[Use-case example]: 
 
-	A Telegram Channel where trading signals are posted. But initial Signal message has no full content.
-      	First, only initial Signal message is posted and after 2-3 minutes the message is edited and filled with full Signal data.
-	There is no need to forward such initial message - cause it has no full content yet - need to wait untill it get edited and full Signal content is added, only afte rthat to forward it.       
+	A Telegram Channel where Trading Signals are posted. 
+ 	But initial Signal message has no full content - it edited after 2-3 minutes and filled with full Signal data.
+	There is no need to forward such initial message - cause it has no full content yet - need to wait untill it get edited and full Signal content is added, only after that to forward it.       
 
- 	First, initial message is posted in a Channel:
+ 	First, Initial Signal message is posted in a Channel:
       	-----------------
 	BUY GOLD SIGNAL
  	-----------------
@@ -70,11 +70,14 @@ Monitor Telegram Channel messages and forward them to other channel in real-time
    	In order to get the edit event - need to place such message sin "edit monitoring list"
     	For that, first need to configure settings for this channel and set the "is_monitor_edited" KEY to true.
      	Also need to configure "monitor_edited_filter_str" setting with a string pattern in this case string pattern is "GOLD SIGNAL", since inital posted message always contains this string.
-      	Any other messages that has no such strig - will not be monitored, but forwarded right away like any other message
+      	Any other messages that has no such strig - will not be monitored, but forwarded right away like any other message.
 
-
-
- 
+	Upon initial Signal message post, "monitor_edited_filter_str" will match and this message will be placed in edit monitoring list.
+ 	Every X seconds, per "msg_edit_monitor_check_interval" setting, message will be retrieved from Channel history and verified if it had been edited.
+  	If message got edited - it will be forwarded.
+   	Maximum number of such checks is determined by "msg_edit_monitor_max_checks" settings.
+    	If after this number of checks the mssage had not been edited - it will be removed from edit monitoring list.
+	
 
 3. log.txt will be created under /logs
 
