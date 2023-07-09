@@ -5,10 +5,10 @@
 ## [Settings]:
    Configure settings /settings/telegram_config.json
 
-   ** Telegram settings: ** get from your Telegram account (see telegram api docs) 
+   **Telegram settings:** get from your Telegram account (see telegram api docs) 
    "username" / "api_id" / "api_hash"
 
-   ** Messages forward rules: ** are set within "forward_map"
+   **Messages forward rules:** are set within "forward_map"
    
     
 
