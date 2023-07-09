@@ -2,8 +2,19 @@
 
 # [DOC]
 
-1. Configure settings on /settings/telegram_config.json
-2. log.txt will be created under /logs
+## [Settings]:
+   Configure settings /settings/telegram_config.json
+
+   ** Telegram settings: ** get from your Telegram account (see telegram api docs) 
+   "username" / "api_id" / "api_hash"
+
+   ** Messages forward rules: ** are set within "forward_map"
+   
+    
+
+3. log.txt will be created under /logs
+
+## [Running]
 
 ![1](https://github.com/Crazzy626/TG_EDITED_FORWARDER/assets/70648978/4a40a1ce-112b-44a1-b7e4-a67faa97dd8b)
 ![2](https://github.com/Crazzy626/TG_EDITED_FORWARDER/assets/70648978/da5d6c46-146f-4f43-bd0b-9f5aff739082)
