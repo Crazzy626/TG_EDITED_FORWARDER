@@ -3,26 +3,24 @@
 # [DOC]
 
 ## [Settings]:
-   Configure settings /settings/telegram_config.json
+	Configure settings /settings/telegram_config.json
 
-   **Telegram settings:** 
+**Telegram settings:** 
+	get from your Telegram account (see telegram api docs) 
+   	"username" / "api_id" / "api_hash"
+
+**Messages forward rules:** are set within "forward_map"
+
+	Every entry is a Froward Group - indicate from which Channels to forward messages to which Channels
    
-   get from your Telegram account (see telegram api docs) 
-   "username" / "api_id" / "api_hash"
-
-   **Messages forward rules:** are set within "forward_map"
-
-   Every entry is a Froward Group - indicate from which Channels to forward messages to which Channels
-   
-   "group_name" - any name for the group
-   "forward_from" - list of Channels from which need to forward messages
-                   - every entry is a set of parameters for this channel
-	"chat_id" - Channel ID as it on Telegram 
+	"group_name" - any name for the group
+	"forward_from" - list of Channels from which need to forward messages. Every entry is a set of parameters for this channel
+	"chat_id" - Channel ID as it on Telegram
 	"chat_name" - Channel Name as it on Telegram
 	"is_monitor_edited" - true if messages form this Channel needs to be monitored for edit event 
 	"monitor_edited_filter_str" - filter string applied before message is placed in momnitoring list
 
-   *Note: see [Edited Message Monitor] section*
+	*Note: see [Edited Message Monitor] section*
 			
 	"forward_to" - list of Channels where need to forward messages
 	
