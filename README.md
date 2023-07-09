@@ -38,7 +38,7 @@ Monitor Telegram Channel messages and forward them to other channel in real-time
 			
 	"forward_to" - list of Channels where need to forward messages
 
- **Message Edited Monitor**
+ **Message Edite Monitor**
 
  	Allows to monitor messages from the history for "edit" event.
   	Example: an "initial message" is posted in the Channel and need to monitor if it will be edited sometime in the future.
