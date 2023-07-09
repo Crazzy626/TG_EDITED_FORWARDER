@@ -64,19 +64,19 @@ Monitor Telegram Channel messages and forward them to other channel in real-time
 
   	Entry: 1.5
    	SL: 1.4
-    	TP: 1.6
+	TP: 1.6
   	-----------------
 
    	In order to get the edit event - need to place such message sin "edit monitoring list"
-    	For that, first need to configure settings for this channel and set the "is_monitor_edited" KEY to true.
-     	Also need to configure "monitor_edited_filter_str" setting with a string pattern in this case string pattern is "GOLD SIGNAL", since inital posted message always contains this string.
-      	Any other messages that has no such strig - will not be monitored, but forwarded right away like any other message.
+	For that, first need to configure settings for this channel and set the "is_monitor_edited" KEY to true.
+	Also need to configure "monitor_edited_filter_str" setting with a string pattern in this case string pattern is "GOLD SIGNAL", since inital posted message always contains this string.
+	Any other messages that has no such strig - will not be monitored, but forwarded right away like any other message.
 
 	Upon initial Signal message post, "monitor_edited_filter_str" will match and this message will be placed in edit monitoring list.
  	Every X seconds, per "msg_edit_monitor_check_interval" setting, message will be retrieved from Channel history and verified if it had been edited.
   	If message got edited - it will be forwarded.
    	Maximum number of such checks is determined by "msg_edit_monitor_max_checks" settings.
-    	If after this number of checks the mssage had not been edited - it will be removed from edit monitoring list.
+	If after this number of checks the mssage had not been edited - it will be removed from edit monitoring list.
 	
 
 3. log.txt will be created under /logs
