@@ -30,8 +30,10 @@ Monitor Telegram Channel messages and forward them to other channel in real-time
 	"chat_id" - Channel ID as it on Telegram
 	"chat_name" - Channel Name as it on Telegram
 	"is_monitor_edited" - true if messages form this Channel needs to be monitored for edit event 
-	"monitor_edited_filter_str" - filter string applied before message is placed in momnitoring list
-
+	"monitor_edited_filter_str" - filter string applied before message is placed in momnitoring list. If message contains this string - it will be placed in edit monitor.
+	 "msg_edit_monitor_check_interval" - interval in seconds, between message edit check 
+	"msg_edit_monitor_max_checks" - maximum number of checks, after which monitored message will be removed from message edit monitring list
+	  
 	Note: see [Message Edit Monitor] section
 			
 	"forward_to" - list of Channels where need to forward messages
@@ -39,20 +41,23 @@ Monitor Telegram Channel messages and forward them to other channel in real-time
  **Message Edited Monitor**
 
  	Allows to monitor messages from the history for "edit" event.
-  	Example: an "initial message" is posted in the Channel and need to monitor if it will be edited somewhere in the future.
+  	Example: an "initial message" is posted in the Channel and need to monitor if it will be edited sometime in the future.
    	"is_monitor_edited" setting allows to indicate in which Channel to use this feature.
     	"monitor_edited_filter_str" allows to filter "initial message" by indicated string pattern in order to decide if it will be monitored or treated as simple message (non monitored)
      	This is for the case if there is no need to mintor all messages, but only specific message sthat initially has a pattern.
 
-     	Example: A Telegram Channel where trading signals are posted. But initial Signal message has no full content.
-      	First, only initial Signal message is posted and after 2-3 minutes the message is edited and filled with full Signal data.
+     	[Use-case example]: 
 
- 	First, initial message is issued in a Channel
+	A Telegram Channel where trading signals are posted. But initial Signal message has no full content.
+      	First, only initial Signal message is posted and after 2-3 minutes the message is edited and filled with full Signal data.
+	There is no need to forward such initial message - cause it has no full content yet - need to wait untill it get edited and full Signal content is added, only afte rthat to forward it.       
+
+ 	First, initial message is posted in a Channel:
       	-----------------
 	BUY GOLD SIGNAL
  	-----------------
 
-	After 2-3 minutes message is edited and content changed to 
+	After 2-3 minutes message is edited and content changed to: 
 
  	-----------------
 	SELL GOLD SIGNAL
@@ -62,10 +67,12 @@ Monitor Telegram Channel messages and forward them to other channel in real-time
     	TP: 1.6
   	-----------------
 
-   	To 
+   	In order to get the edit event - need to place such message sin "edit monitoring list"
+    	For that, first need to configure settings for this channel and set the "is_monitor_edited" KEY to true.
+     	Also need to configure "monitor_edited_filter_str" setting with a string pattern in this case string pattern is "GOLD SIGNAL", since inital posted message always contains this string.
+      	Any other messages that has no such strig - will not be monitored, but forwarded right away like any other message
 
- 	"msg_edit_monitor_check_interval" - interval in seconds, between message edit check 
-	"msg_edit_monitor_max_checks" - maximum number of checks, after which monitored message will be removed from message edit monitring list
+
 
  
 
