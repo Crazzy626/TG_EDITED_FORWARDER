@@ -1,6 +1,8 @@
 """
 Telegram Messages Forwarder
 
+[DOC]
+
 [Version 2.0:]
 
     [08.07.2023] Added possibility to monitor "Edited Messages"
