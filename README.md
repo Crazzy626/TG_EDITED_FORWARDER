@@ -43,8 +43,8 @@ Monitor Telegram Channel messages and forward them to other channel in real-time
  	Allows to monitor messages from the history for "edit" event.
   	Example: an "initial message" is posted in the Channel and need to monitor if it will be edited sometime in the future.
    	"is_monitor_edited" setting allows to indicate in which Channel to use this feature.
-    	"monitor_edited_filter_str" allows to filter "initial message" by indicated string pattern in order to decide if it will be monitored or treated as simple message (non monitored)
-     	This is for the case if there is no need to mintor all messages, but only specific message sthat initially has a pattern.
+	"monitor_edited_filter_str" allows to filter "initial message" by indicated string pattern in order to decide if it will be monitored or treated as simple message (non monitored)
+	This is for the case if there is no need to mintor all messages, but only specific message sthat initially has a pattern.
 
 [Use-case example]: 
 
