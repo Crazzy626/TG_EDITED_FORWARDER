@@ -31,7 +31,7 @@ Monitor Telegram Channel messages and forward them to other channel in real-time
 	"chat_name" - Channel Name as it on Telegram
 	"is_monitor_edited" - true if messages form this Channel needs to be monitored for edit event 
 	"monitor_edited_filter_str" - filter string applied before message is placed in momnitoring list. If message contains this string - it will be placed in edit monitor.
-	 "msg_edit_monitor_check_interval" - interval in seconds, between message edit check 
+	"msg_edit_monitor_check_interval" - interval in seconds, between message edit check 
 	"msg_edit_monitor_max_checks" - maximum number of checks, after which monitored message will be removed from message edit monitring list
 	  
 	Note: see [Message Edit Monitor] section
@@ -46,7 +46,7 @@ Monitor Telegram Channel messages and forward them to other channel in real-time
     	"monitor_edited_filter_str" allows to filter "initial message" by indicated string pattern in order to decide if it will be monitored or treated as simple message (non monitored)
      	This is for the case if there is no need to mintor all messages, but only specific message sthat initially has a pattern.
 
-     	[Use-case example]: 
+[Use-case example]: 
 
 	A Telegram Channel where Trading Signals are posted. 
  	But initial Signal message has no full content - it edited after 2-3 minutes and filled with full Signal data.
