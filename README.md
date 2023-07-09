@@ -4,8 +4,10 @@ Monitor Telegram Channel messages and forward them to other channel in real-time
 
 Main features:
 	- forward message right away when it appears in a Channel
+ 
 	- multiple lists of Channel sources and targets
- 	- monitor message for edit event and forward it only after it had been edited
+ 
+  	- monitor message for edit event and forward it only after it had been edited
 
 # [DOC]
 
