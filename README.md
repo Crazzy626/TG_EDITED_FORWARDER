@@ -79,8 +79,6 @@ Monitor Telegram Channel messages and forward them to other channel in real-time
 	If after this number of checks the mssage had not been edited - it will be removed from edit monitoring list.
 	
 
-3. log.txt will be created under /logs
-
 ## [Running]
 
 ![1](https://github.com/Crazzy626/TG_EDITED_FORWARDER/assets/70648978/4a40a1ce-112b-44a1-b7e4-a67faa97dd8b)
@@ -90,32 +88,8 @@ Monitor Telegram Channel messages and forward them to other channel in real-time
 # [Version 2.0:]
 
     [08.07.2023] Added possibility to monitor "Edited Messages"
-
-    First, potential Signal message appears in Channel - but it has no full Signal content yet
-    We can filter potential Signal message using some logic:
-    Example: First potential Signal message:
-    ---------------------------------------
-    SELL GOLD SIGNAL
-    ---------------------------------------
-    After a while (X minutes) - the message is edited and full Signal content is added
-    Need to monitor such messages and retrieve Signal edited content (ex.: forward to message parser and positions create)
-
-    Example: Potential Signal message that had been edited:
-
-    ---------------------------------------
-    SELL GOLD SIGNAL
-
-    LOW RISK
-
-    Entry: 1998.5
-
-    TP1: 1996.5
-    TP1: 1994.5
-
-    SL: 2000.50
-    ---------------------------------------
-
+	
 # [Version 1.0:]
 
-- Monitor multiple Telegram Channel messages and forward messages to multiple channels
+	Monitor multiple Telegram Channels messages and forward messages to multiple channels
 
