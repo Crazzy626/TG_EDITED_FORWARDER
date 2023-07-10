@@ -40,13 +40,16 @@ Monitor Telegram Channel messages and forward them to other channel in real-time
 
 ## [UPDATE]:
 	
+	To get only updates
 	cmd:	git pull origin master
+
+	To get full project:
+	git clone https://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@github.com/Crazzy626/TG_EDITED_FORWARDER.git
 
 	*Note: 
 	
 	Upon update, the "telegram session" file will be deleted - need to copy paste it to root folder(where main.py is)
 	Otherwise, on first start - telegram authorization will be triggered.
-	
 	
 
 ## [Settings]:
