@@ -14,17 +14,28 @@ Monitor Telegram Channel messages and forward them to other channel in real-time
 
 # [DOC]
 
+## [SETUP & RUN]:
+
+	1. CD to destination folder:
+	cmd:	cd home/<user>/my_app
+
+	2. Clone repo (using Personal Acess Token):
+	cmd:	git clone https://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@github.com/Crazzy626/TG_EDITED_FORWARDER.git
+
+	* TG_EDITED_FORWARDER folder will be created inside my_app folder and project downloaded
+	
+	2. Configure settings /settings/telegram_config.json:
+
+	3. Run: access TG_EDITED_FORWARDER folder where main.py is located
+	cmd:	python3.10 main.py
+
+	4. Check terminal and log.log for output
+
+## [UPDATE]:
+	
+	git pull origin master
+
 ## [Settings]:
-	- CLone repo using Personal Acess Token
-	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
-	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
-
-	Full command:
-
-	git clone https://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@github.com/Crazzy626/TG_EDITED_FORWARDER.git
-	git clone https://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@github.com/Crazzy626/TG_EDITED_FORWARDER.git
-
-	- Configure settings /settings/telegram_config.json
 
 **Telegram settings:** 
 	get from your Telegram account (see telegram api docs) 
