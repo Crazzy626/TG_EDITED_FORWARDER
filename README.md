@@ -116,7 +116,13 @@ Monitor Telegram Channel messages and forward them to other channel in real-time
 	If after this number of checks the mssage had not been edited - it will be removed from edit monitoring list.
 	
 
-## [Running]
+## [Non-error Messages]
+
+	* The authorization key (session file) was used under two different IP addresses simultaneously
+	
+	Means that copied "telegram session" file can not be used - need to create new session file.
+	Delete existing .session file and start main.py again - telegram authorization will be triggered.
+
 
 ![1](https://github.com/Crazzy626/TG_EDITED_FORWARDER/assets/70648978/4a40a1ce-112b-44a1-b7e4-a67faa97dd8b)
 ![2](https://github.com/Crazzy626/TG_EDITED_FORWARDER/assets/70648978/da5d6c46-146f-4f43-bd0b-9f5aff739082)
