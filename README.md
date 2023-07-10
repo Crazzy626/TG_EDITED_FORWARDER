@@ -31,9 +31,23 @@ Monitor Telegram Channel messages and forward them to other channel in real-time
 
 	4. Check terminal and log.log for output
 
+	*Note: 
+
+	On first run, Telegram API will create a "telegram session" file using Telegram Credentials
+	Will need to pass authorization process - follow on-screen instructions
+	Session file is stored under same name as "username" KEY from settings: ex.: alex2.session
+	Backup this file somewhere in safe place - it can be used later without creating new session, just copy-paste.
+
 ## [UPDATE]:
 	
 	cmd:	git pull origin master
+
+	*Note: 
+	
+	Upon update, the "telegram session" file will be deleted - need to copy paste it to root folder(where main.py is)
+	Otherwise, on first start - telegram authorization will be triggered.
+	
+	
 
 ## [Settings]:
 
