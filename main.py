@@ -1,43 +1,5 @@
 """
 Telegram Messages Forwarder
-
-[DOC]
-
-[Version 2.0:]
-
-    [08.07.2023] Added possibility to monitor "Edited Messages"
-
-    First, potential Signal message appears in Channel - but it has no full Signal content yet
-    We can filter potential Signal message using some logic:
-    Example: First potential Signal message:
-    ---------------------------------------
-    SELL GOLD SIGNAL
-    ---------------------------------------
-    After a while (X minutes) - the message is edited and full Signal content is added
-    Need to monitor such messages and retrieve Signal edited content (ex.: forward to message parser and positions create)
-
-    Example: Potential Signal message that had been edited:
-
-    ---------------------------------------
-    SELL GOLD SIGNAL
-
-    LOW RISK
-
-    Entry: 1998.5
-
-    TP1: 1996.5
-    TP1: 1994.5
-
-    SL: 2000.50
-    ---------------------------------------
-
-[Version 1.0:]
-
-- Monitor a Telegram Channel messages
-- Get Message Data
-- Analyze message for a Signal
-- Forward messages to other Channel
-
 """
 
 import asyncio
@@ -46,7 +8,7 @@ import time
 from datetime import datetime
 from telethon import TelegramClient, events
 from telethon.tl.functions.messages import GetHistoryRequest, GetDialogsRequest
-from telethon.tl.types import InputPeerChannel, InputPeerChat, InputPeerEmpty
+from telethon.tl.types import InputPeerChannel, InputPeerChat, InputPeerEmpty, PeerChannel
 from termcolor import colored
 import addons as ad
 from __init__ import LOG_FOLDER, SETTINGS_DIR, TELEGRAM_CFG_FILE
@@ -291,7 +253,7 @@ async def channels_peer_update(tgclient, channels_data) -> bool | str:
     if dialogs_obj is None or len(dialogs_obj.dialogs) == 0:
         return f'[main]: Failed to retrieve channels dialogs for channels peer OBJ update'
 
-    print(f'[debug]:[main]: dialogs retrieved - total [{len(dialogs_obj.dialogs)}]')
+    log.debug(f'[main]: dialogs retrieved - total [{len(dialogs_obj.dialogs)}]')
 
     # Filter only needed channels - those which we will want to monitor for edited messages
 
@@ -300,23 +262,36 @@ async def channels_peer_update(tgclient, channels_data) -> bool | str:
         if not ch_data["is_monitor_edited"]:
             continue
 
-        print(f'[debug]:[main]: searching Peer OBJ for channel [{ch_key}]')
+        log.debug(f'[main]: searching Peer OBJ for channel [{ch_key}]')
 
         # Search channel by its ID and get Peer OBJ
+        '''
+        Since we retrieve ALL Dialogs - there will be Channels / Groups / Chats
+        Dialog OBJ will have different type of data, inclusivge Peer data:
+        - PeerChannel > Dialog(peer=PeerChannel(channel_id=1526567406), top_message=6804 . . .
+        - PeerChat    > Dialog(peer=PeerChat(chat_id=887519280), top_message=38845 . . .
+        - PeerUser    > Dialog(peer=PeerUser(user_id=1284845391), top_message=38836,
+        '''
+
+        # ToDo - get PeerChannel directly - without retrieving Dialogs
+
         is_found = False
-        for dlg_obj in dialogs_obj.dialogs:
-            if dlg_obj.peer.channel_id == ch_key:
-                ch_data["channel_peer_obj"] = dlg_obj.peer
-                print(f'[debug]:[main]: Found Peer OBJ for channel [{ch_key}]')
 
-                # DEBUG
-                # print(dlg_obj)
-                # print(dlg_obj.peer)
-                # msg_data = await tgclient.get_messages(dlg_obj.peer, limit=1, ids=300)
-                # print(msg_data)
+        for idx, dlg_obj in enumerate(dialogs_obj.dialogs):
+            # Not all Dialogs has Peer (Only Channels has peer?)
+            try:
+                # Dialog is not Channel type
+                if type(dlg_obj.peer) != PeerChannel:
+                    continue
 
-                is_found = True
-                break
+                if dlg_obj.peer.channel_id == ch_key:
+                    ch_data["channel_peer_obj"] = dlg_obj.peer
+                    log.debug(f'[main]: Found Peer OBJ for channel [{ch_key}]')
+                    is_found = True
+                    break
+            except:
+                print(f'\n[debug]: [{idx}] DIALOG HAS NO PEER\n{dlg_obj}\n')
+                input('Continue . . .')
 
         if not is_found:
             return f'[main]: Failed to retrieve Peer OBJ for channel [{ch_key}] - channel with such ID not found in dialogs list returned by "GetDialogsRequest"'
@@ -363,7 +338,7 @@ async def check_message_edit(tgclient, msg_obj, channel_peer_obj) -> bool | str:
         return True
     else:
         msg_obj["checks_count"] += 1
-        print(f'[debug]:[edit_monitoring]: Message [{msg_obj["message_id"]}] not edited  |  checks_count = {msg_obj["checks_count"]}')
+        log.debug(f'[edit_monitoring]: Message [{msg_obj["message_id"]}] not edited  |  checks_count = {msg_obj["checks_count"]}')
         return False
 
 
@@ -403,7 +378,7 @@ async def main_loop(tgclient, channels_data, msg_edit_check_interval, msg_edit_m
         # See if Message Edit check time occurs
 
         if time.time() - msg_edit_trigger_time > msg_edit_check_interval:
-            print(f'[debug]:[main_loop]: message edit check time > total messages: {len(msg_edit_monitor_list)}')
+            log.debug(f'[main_loop]: message edit check time > total messages: {len(msg_edit_monitor_list)}')
             log.debug(f'[main_loop]: message edit check time . . .')
 
             if len(msg_edit_monitor_list) > 0:
@@ -445,7 +420,6 @@ async def main_loop(tgclient, channels_data, msg_edit_check_interval, msg_edit_m
 
                     # Message edit check exceeds checks count > will not be kept in monitoring list
                     elif msg_obj["checks_count"] == msg_edit_max_checks:
-                        print(f'[debug]:[main_loop]: message edit > message [{msg_obj["message_id"]}] exceeds max checks > removing from monitoring')
                         log.debug(f'[main_loop]: message edit > message [{msg_obj["message_id"]}] exceeds max checks > removing from monitoring')
 
                     # Keep message in monitoring list
