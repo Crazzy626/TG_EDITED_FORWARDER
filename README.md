@@ -33,7 +33,7 @@ Monitor Telegram Channel messages and forward them to other channel in real-time
 
 ## [UPDATE]:
 	
-	git pull origin master
+	cmd:	git pull origin master
 
 ## [Settings]:
 
