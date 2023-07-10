@@ -41,5 +41,8 @@
 				{ "chat_id": 1861897887, "chat_name": "GS Crypto" }
 			]
 		}
-	]
+	],
+	
+	"msg_edit_monitor_check_interval": 30,
+	"msg_edit_monitor_max_checks": 4
 }
