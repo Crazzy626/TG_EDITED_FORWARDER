@@ -508,7 +508,7 @@ def create_channels_data(cfg: dict) -> dict | str:
             # Potential Signal Message to check against - if message contains this string - then it is a Potential Signal
             # and it will be moved to monitoring
 
-            "monitor_edited_filter_str": "SELL GOLD SIGNAL"
+            "monitor_edited_filter_list": ["SELL GOLD SIGNAL", "GOLD SIGNAL"]
 
             # If need to monitor this channel for edited messages - then will need to retrieve messages history from the Channel
             # in such case we need Channel Peer OBJ to be used in a telethon function called "get_messages"
@@ -550,7 +550,7 @@ def create_channels_data(cfg: dict) -> dict | str:
 
             # region [Preparing some data]
             is_monitor_edited = False
-            monitor_edited_filter_str = None
+            monitor_edited_filter_list = None
 
             if "is_monitor_edited" in ch_from and ch_from["is_monitor_edited"] is True:
                 is_monitor_edited = True
@@ -562,7 +562,7 @@ def create_channels_data(cfg: dict) -> dict | str:
                 if ch_from["monitor_edited_filter_str"] == '':
                     return f'Warning - channel [{ch_from["chat_id"]}] setting missing has unfilled "monitor_edited_filter_str" param'
 
-                monitor_edited_filter_str = ch_from["monitor_edited_filter_str"]
+                monitor_edited_filter_list = ch_from["monitor_edited_filter_list"]
 
             # endregion
 
@@ -572,7 +572,7 @@ def create_channels_data(cfg: dict) -> dict | str:
                 "forward_group_name": a_group["group_name"],
                 "forward_to_list": a_group["forward_to"],
                 "is_monitor_edited": is_monitor_edited,
-                "monitor_edited_filter_str": monitor_edited_filter_str,
+                "monitor_edited_filter_list": monitor_edited_filter_list,
                 "channel_peer_obj": None,                               # Will be updated later
                 "tot_msg_received": 0,
                 "tot_msg_send": 0,
