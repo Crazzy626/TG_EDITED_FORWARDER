@@ -128,6 +128,10 @@ Monitor Telegram Channel messages and forward them to other channel in real-time
 ![2](https://github.com/Crazzy626/TG_EDITED_FORWARDER/assets/70648978/da5d6c46-146f-4f43-bd0b-9f5aff739082)
 ![3](https://github.com/Crazzy626/TG_EDITED_FORWARDER/assets/70648978/af28ff47-6ee0-44a9-a687-df67d94c849b)
 
+# [Version 2.1:]
+
+    [10.07.2023] Added multiple filter patterns to monitor "Edited Messages"
+
 # [Version 2.0:]
 
     [08.07.2023] Added possibility to monitor "Edited Messages"
