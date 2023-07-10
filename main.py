@@ -73,7 +73,7 @@ async def new_message_handler(event):
                 msg_obj["checks_count"] = 0
                 msg_edit_monitor_list.append(msg_obj)
                 log.info(f'Message [{msg_obj["message_id"]}] > matches filter [{filter_str}] > added to edit monitor list')
-                edit_monitor_str = f'True > filter matched [{{filter_str}}]'
+                edit_monitor_str = f'True > filter matched [{filter_str}]'
                 is_filter_matched = True
                 break
 
@@ -566,7 +566,9 @@ def create_channels_data(cfg: dict) -> dict | str:
                 if "monitor_edited_filter_list" not in ch_from:
                     return f'Warning - channel [{ch_from["chat_id"]}] setting missing the "monitor_edited_filter_list" param'
 
-                if type(ch_from["monitor_edited_filter_list"] != list) or len(type(ch_from["monitor_edited_filter_list"] == 0)):
+                filter_list = list(ch_from["monitor_edited_filter_list"])
+
+                if type(ch_from["monitor_edited_filter_list"]) != list or len(ch_from["monitor_edited_filter_list"]) == 0:
                     return f'Warning - channel [{ch_from["chat_id"]}] unfilled setting for "monitor_edited_filter_list" param'
 
                 monitor_edited_filter_list = ch_from["monitor_edited_filter_list"]
