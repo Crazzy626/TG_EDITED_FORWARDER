@@ -54,28 +54,35 @@ async def new_message_handler(event):
     '''
     - Verify "is_monitor_edited" KEY in {channels_data} to see if this message needs to be monitored
     - See if message isa Potential Signal > add message to monitor list if it passes the filter by match string 
-        {monitor_edited_filter_str} for this Channel
+        {monitor_edited_filter_list} for this Channel
     - Using Channel ID to get the channel data from  {channels_data}
     - Add KEY: "checks_count" 
     - Add Message to {msg_edit_monitor_list}
     '''
 
-    is_edit_monitored = False
     edit_monitor_str = 'False'
+    is_filter_matched = False       # Will remain False if channel not monitored or filter not passed
 
     channel_obj = channels_data[msg_obj["channel_id"]]
 
-    if channel_obj["is_monitor_edited"]:                # Message needs to be monitored
-        # See if passes filter
-        if channel_obj["monitor_edited_filter_str"] in msg_obj["message_txt"]:        # Potential Signal message
-            msg_obj["checks_count"] = 0
-            msg_edit_monitor_list.append(msg_obj)
-            log.info(f'Message [{msg_obj["message_id"]}] > is from "edit monitored" channel > added to edit monitor list')
-            edit_monitor_str = 'True > passed filter'
-            is_edit_monitored = True
-        else:
+    if channel_obj["is_monitor_edited"]:                # Messages from this Channel needs to be monitored
+        # See if Message matches any Filter string > potential Signal Message
+
+        for filter_str in channel_obj["monitor_edited_filter_list"]:
+            if filter_str in msg_obj["message_txt"]:
+                msg_obj["checks_count"] = 0
+                msg_edit_monitor_list.append(msg_obj)
+                log.info(f'Message [{msg_obj["message_id"]}] > matches filter [{filter_str}] > added to edit monitor list')
+                edit_monitor_str = f'True > filter matched [{{filter_str}}]'
+                is_filter_matched = True
+                break
+
+        # No any Filter matched - currently message will be sent as normal message
+        # ToDo - add more options if "monitor edited channel" not matched any pattern > do not send message
+
+        if is_filter_matched is False:
             log.info(f'Message [{msg_obj["message_id"]}] > is from "edit monitored" channel, but not passed the string filter')
-            edit_monitor_str = 'True > not passed filter'
+            edit_monitor_str = 'True > not matches any filter'
     else:
         log.info(f'Message [{msg_obj["message_id"]}] > not from "edit monitored" channel')
 
@@ -99,10 +106,10 @@ async def new_message_handler(event):
     print(f'\n{tmp_str}')
     log.info(f'New Message:\n{msg_obj}')
 
-    # If message is Edit Monitored - return here (will be forwarded later after edit check procedure)
-    # If message is not Edit Monitored or Is Edit Monitored but not passed the Filter - just forward it as normal
+    # If message is "Edit Monitored" AND "Matched a Filter" - return here (will be forwarded later after edit check procedure)
+    # If message is not "Edit Monitored" or Is "Edit Monitored" but not passed the Filter - just forward it as normal
 
-    if is_edit_monitored:
+    if is_filter_matched is True:
         return
 
     # region [Message Forward]
@@ -555,12 +562,12 @@ def create_channels_data(cfg: dict) -> dict | str:
             if "is_monitor_edited" in ch_from and ch_from["is_monitor_edited"] is True:
                 is_monitor_edited = True
 
-                # Should contain this param as well
-                if "monitor_edited_filter_str" not in ch_from:
-                    return f'Warning - channel [{ch_from["chat_id"]}] setting missing the "monitor_edited_filter_str" param'
+                # Should contain "monitor_edited_filter_list" KEY (list)
+                if "monitor_edited_filter_list" not in ch_from:
+                    return f'Warning - channel [{ch_from["chat_id"]}] setting missing the "monitor_edited_filter_list" param'
 
-                if ch_from["monitor_edited_filter_str"] == '':
-                    return f'Warning - channel [{ch_from["chat_id"]}] setting missing has unfilled "monitor_edited_filter_str" param'
+                if type(ch_from["monitor_edited_filter_list"] != list) or len(type(ch_from["monitor_edited_filter_list"] == 0)):
+                    return f'Warning - channel [{ch_from["chat_id"]}] unfilled setting for "monitor_edited_filter_list" param'
 
                 monitor_edited_filter_list = ch_from["monitor_edited_filter_list"]
 

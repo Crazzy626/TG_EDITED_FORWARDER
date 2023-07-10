@@ -23,7 +23,14 @@
 			"forward_from": [
 				{ "chat_id": 1146640365, "chat_name": "Gold Forcaster (paid) - Elite" },
 				{ "chat_id": 1710836950, "chat_name": "GOLD Snipers VIP" },
-				{ "chat_id": 1701667638, "chat_name": "Clarity Forex Signals | GBPJPY & GOLD | MambaFX", "is_monitor_edited": true, "monitor_edited_filter_str": "SELL GOLD SIGNAL" }
+				{
+					"chat_id": 1701667638, "chat_name": "Clarity Forex Signals | GBPJPY & GOLD | MambaFX",
+					"is_monitor_edited": true,
+					"monitor_edited_filter_list": [
+						"BUY GOLD SL",
+						"SELL GOLD SL"
+					]
+				}
 			],
 	
 			"forward_to": [

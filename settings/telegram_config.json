@@ -11,7 +11,10 @@
 					"chat_id": 1526567406, 
 					"chat_name": "TMMT-1", 
 					"is_monitor_edited": true, 
-					"monitor_edited_filter_str": "GOLD SIGNAL" 
+					"monitor_edited_filter_list": [
+						"BUY GOLD SL",
+						"SELL GOLD SL"
+					]
 				}
 			],
 			
