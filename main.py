@@ -290,8 +290,7 @@ async def channels_peer_update(tgclient, channels_data) -> bool | str:
                     is_found = True
                     break
             except:
-                print(f'\n[debug]: [{idx}] DIALOG HAS NO PEER\n{dlg_obj}\n')
-                input('Continue . . .')
+                log.warning(f'[{idx}] DIALOG HAS NO PEER\n{dlg_obj}')
 
         if not is_found:
             return f'[main]: Failed to retrieve Peer OBJ for channel [{ch_key}] - channel with such ID not found in dialogs list returned by "GetDialogsRequest"'
